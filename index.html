@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roosterwijzigingen</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #1a1a1a;
+      --surface:   #242424;
+      --border:    #2e2e2e;
+      --accent:    #e8634a;
+      --accent2:   #d45a72;
+      --text:      #e8e0d8;
+      --muted:     #6b6560;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100dvh;
+      overflow-y: auto;
+      overscroll-behavior: none;
+    }
+
+    .page-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100dvh;
+      width: 100%;
+    }
+
+    header {
+      width: 100%;
+      padding: 48px 24px 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 6vw, 3.2rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .logo-sub {
+      font-size: 0.75rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .dates {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-top: 40px;
+      width: 100%;
+      max-width: 320px;
+      padding: 0 24px;
+    }
+
+    .sectie-label {
+      width: 100%;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2px;
+    }
+
+    .sectie-spacer {
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    .date-btn {
+      width: 100%;
+      padding: 14px 28px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--accent);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .date-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      opacity: 0;
+      transition: opacity 0.18s ease;
+    }
+
+    .date-btn:hover::before,
+    .date-btn.active::before { opacity: 0.12; }
+
+    .date-btn.active {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .date-btn span { position: relative; z-index: 1; }
+
+    .pdf-container {
+      display: none;
+      width: calc(100% - 48px);
+      max-width: 700px;
+      margin: 32px 24px 48px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--surface);
+    }
+
+    .pdf-container.visible { display: block; }
+
+    .pdf-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .pdf-label {
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .pdf-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: color 0.15s;
+      line-height: 1;
+    }
+    .pdf-close:hover { color: var(--accent); }
+
+    .iframe-wrapper {
+      width: 100%;
+      aspect-ratio: 1 / 1.4142;
+      position: relative;
+    }
+
+    .iframe-wrapper iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    footer {
+      margin-top: auto;
+      padding: 24px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+<div class="page-content">
+
+  <header>
+    <div class="logo-title">Roosterwijzigingen</div>
+    <div class="logo-sub">Altena College</div>
+  </header>
+
+  <div class="dates" id="dates">
+    <div class="sectie-label">Roosterwijzigingen</div>
+    <div class="sectie-spacer"></div>
+    <div class="sectie-label">Informatie</div>
+    <button class="date-btn" onclick="downloadInfobord()">
+      <span>Infobord</span>
+    </button>
+  </div>
+
+  <div class="pdf-container" id="pdfContainer">
+    <div class="pdf-header">
+      <span class="pdf-label" id="pdfLabel"></span>
+      <button class="pdf-close" onclick="closePdf()">✕</button>
+    </div>
+    <div class="iframe-wrapper">
+      <iframe id="pdfFrame" title="Roosterwijziging PDF"></iframe>
+    </div>
+  </div>
+
+  <footer>empowered by Joey Haks</footer>
+
+</div>
+
+<script>
+  const DAG_KORT   = ['zo','ma','di','wo','do','vr','za'];
+  const MAAND_KORT = ['jan','feb','mar','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+
+  const DAG_KORT   = ['zo','ma','di','wo','do','vr','za'];
+  const MAAND_KORT = ['jan','feb','mar','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+
+  function volgendeSchooldag(d) {
+    const next = new Date(d);
+    do { next.setDate(next.getDate() + 1); }
+    while (next.getDay() === 0 || next.getDay() === 6);
+    return next;
+  }
+
+  function startdag() {
+    const nu  = new Date();
+    const dag = nu.getDay();
+    if (dag === 0 || dag === 6) return volgendeSchooldag(nu);
+    if (nu.getHours() > 16 || (nu.getHours() === 16 && nu.getMinutes() >= 30))
+      return volgendeSchooldag(nu);
+    return nu;
+  }
+
+  function formatLabel(d) {
+    return `${DAG_KORT[d.getDay()]} ${d.getDate()} ${MAAND_KORT[d.getMonth()]}`;
+  }
+
+  function bouwKnoppen() {
+    const dag1 = startdag();
+    const dag2 = volgendeSchooldag(dag1);
+
+    // map=vandaag is altijd de eerstvolgende schooldag,
+    // map=morgen is de dag daarna — ongeacht de echte bestandsnaam
+    const daten = [
+      { datum: dag1, map: 'vandaag' },
+      { datum: dag2, map: 'morgen'  }
+    ];
+
+    const container = document.getElementById('dates');
+    container.querySelectorAll('.datum-btn').forEach(b => b.remove());
+    const spacer = container.querySelector('.sectie-spacer');
+
+    daten.forEach(({ datum, map }) => {
+      const label = formatLabel(datum);
+      const btn   = document.createElement('button');
+      btn.className = 'date-btn datum-btn';
+      btn.setAttribute('data-map',   map);
+      btn.setAttribute('data-label', label);
+      btn.onclick = function() { openPdf(this); };
+      btn.innerHTML = `<span>${label}</span>`;
+      container.insertBefore(btn, spacer);
+    });
+  }
+
+  function openPdf(btn) {
+    document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const map   = btn.getAttribute('data-map');
+    const label = btn.getAttribute('data-label');
+
+    document.getElementById('pdfLabel').textContent = label;
+    // Proxy haalt zelf de juiste bestandsnaam op via directory listing
+    document.getElementById('pdfFrame').src = `/api/proxy?map=${map}#zoom=page-fit&toolbar=0`;
+    document.getElementById('pdfContainer').classList.add('visible');
+    document.getElementById('pdfContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function closePdf() {
+    document.getElementById('pdfContainer').classList.remove('visible');
+    document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('pdfFrame').src = '';
+  }
+
+  function downloadInfobord() {
+    const a = document.createElement('a');
+    a.href     = '/api/proxy?bestand=infobord';
+    a.download = 'infobord.pptx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  bouwKnoppen();
+  setInterval(bouwKnoppen, 60 * 1000);
+</script>
+</body>
+</html>
