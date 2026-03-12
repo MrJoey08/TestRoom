@@ -7,13 +7,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg:        #1a1a1a;
-      --surface:   #242424;
-      --border:    #2e2e2e;
-      --accent:    #e8634a;
-      --accent2:   #d45a72;
-      --text:      #e8e0d8;
-      --muted:     #6b6560;
+      --bg:      #1a1a1a;
+      --surface: #242424;
+      --border:  #2e2e2e;
+      --accent:  #e8634a;
+      --accent2: #d45a72;
+      --text:    #e8e0d8;
+      --muted:   #6b6560;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -85,10 +85,7 @@
       margin-bottom: 2px;
     }
 
-    .sectie-spacer {
-      width: 100%;
-      margin-top: 8px;
-    }
+    .sectie-spacer { width: 100%; margin-top: 8px; }
 
     .date-btn {
       width: 100%;
@@ -117,13 +114,19 @@
 
     .date-btn:hover::before,
     .date-btn.active::before { opacity: 0.12; }
+    .date-btn.active { border-color: var(--accent); }
+    .date-btn span { position: relative; z-index: 1; }
 
-    .date-btn.active {
-      border-color: var(--accent);
-      color: var(--accent);
+    .date-btn.loading { opacity: 0.5; cursor: wait; }
+
+    .status-msg {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-align: center;
+      padding: 8px 0;
     }
 
-    .date-btn span { position: relative; z-index: 1; }
+    .status-msg.fout { color: #e8634a; }
 
     .pdf-container {
       display: none;
@@ -198,10 +201,16 @@
 
   <div class="dates" id="dates">
     <div class="sectie-label">Roosterwijzigingen</div>
+
+    <!-- Datum-knoppen komen hier via JS -->
+    <div id="rwKnoppen">
+      <div class="status-msg" id="statusMsg">Laden…</div>
+    </div>
+
     <div class="sectie-spacer"></div>
     <div class="sectie-label">Informatie</div>
-    <button class="date-btn" onclick="downloadInfobord()">
-      <span>Infobord</span>
+    <button class="date-btn" id="infobordBtn" style="display:none" onclick="downloadInfobord()">
+      <span id="infobordLabel">Infobord</span>
     </button>
   </div>
 
@@ -220,69 +229,63 @@
 </div>
 
 <script>
-  const DAG_KORT   = ['zo','ma','di','wo','do','vr','za'];
-  const MAAND_KORT = ['jan','feb','mar','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+  // Cache van de opgehaalde links zodat knoppen instant reageren na eerste load
+  let cachedLinks = null;
+  let bezig = false;
 
-  const DAG_KORT   = ['zo','ma','di','wo','do','vr','za'];
-  const MAAND_KORT = ['jan','feb','mar','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
-
-  function volgendeSchooldag(d) {
-    const next = new Date(d);
-    do { next.setDate(next.getDate() + 1); }
-    while (next.getDay() === 0 || next.getDay() === 6);
-    return next;
+  async function haalLinks(forceer = false) {
+    if (cachedLinks && !forceer) return cachedLinks;
+    const res = await fetch('/api/links');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    cachedLinks = await res.json();
+    return cachedLinks;
   }
 
-  function startdag() {
-    const nu  = new Date();
-    const dag = nu.getDay();
-    if (dag === 0 || dag === 6) return volgendeSchooldag(nu);
-    if (nu.getHours() > 16 || (nu.getHours() === 16 && nu.getMinutes() >= 30))
-      return volgendeSchooldag(nu);
-    return nu;
+  async function bouwKnoppen() {
+    const container = document.getElementById('rwKnoppen');
+    const statusMsg = document.getElementById('statusMsg');
+
+    try {
+      const links = await haalLinks(true); // altijd vers bij opbouw
+
+      container.innerHTML = '';
+
+      ['vandaag', 'morgen'].forEach((map) => {
+        const info = links[map];
+        if (!info) return; // niet beschikbaar (bijv. vrijdagmiddag is morgen nog leeg)
+
+        const btn = document.createElement('button');
+        btn.className = 'date-btn datum-btn';
+        btn.setAttribute('data-map', map);
+        btn.innerHTML = `<span>${info.label}</span>`;
+        btn.onclick = function() { openPdf(this, map, info.label); };
+        container.appendChild(btn);
+      });
+
+      if (container.children.length === 0) {
+        container.innerHTML = '<div class="status-msg">Geen roosterwijzigingen beschikbaar.</div>';
+      }
+
+      // Infobord knop
+      if (links.infobord) {
+        const infobordBtn = document.getElementById('infobordBtn');
+        document.getElementById('infobordLabel').textContent = links.infobord.label || 'Infobord';
+        infobordBtn.style.display = '';
+      }
+
+    } catch (e) {
+      container.innerHTML = '<div class="status-msg fout">Kon roosterwijzigingen niet ophalen.</div>';
+    }
   }
 
-  function formatLabel(d) {
-    return `${DAG_KORT[d.getDay()]} ${d.getDate()} ${MAAND_KORT[d.getMonth()]}`;
-  }
-
-  function bouwKnoppen() {
-    const dag1 = startdag();
-    const dag2 = volgendeSchooldag(dag1);
-
-    // map=vandaag is altijd de eerstvolgende schooldag,
-    // map=morgen is de dag daarna — ongeacht de echte bestandsnaam
-    const daten = [
-      { datum: dag1, map: 'vandaag' },
-      { datum: dag2, map: 'morgen'  }
-    ];
-
-    const container = document.getElementById('dates');
-    container.querySelectorAll('.datum-btn').forEach(b => b.remove());
-    const spacer = container.querySelector('.sectie-spacer');
-
-    daten.forEach(({ datum, map }) => {
-      const label = formatLabel(datum);
-      const btn   = document.createElement('button');
-      btn.className = 'date-btn datum-btn';
-      btn.setAttribute('data-map',   map);
-      btn.setAttribute('data-label', label);
-      btn.onclick = function() { openPdf(this); };
-      btn.innerHTML = `<span>${label}</span>`;
-      container.insertBefore(btn, spacer);
-    });
-  }
-
-  function openPdf(btn) {
+  function openPdf(btn, map, label) {
+    if (bezig) return;
     document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
 
-    const map   = btn.getAttribute('data-map');
-    const label = btn.getAttribute('data-label');
-
     document.getElementById('pdfLabel').textContent = label;
-    // Proxy haalt zelf de juiste bestandsnaam op via directory listing
-    document.getElementById('pdfFrame').src = `/api/proxy?map=${map}#zoom=page-fit&toolbar=0`;
+    // Proxy haalt live de juiste PDF op uit de /vandaag/ of /morgen/ map
+    document.getElementById('pdfFrame').src = `/api/proxy?map=${map}`;
     document.getElementById('pdfContainer').classList.add('visible');
     document.getElementById('pdfContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -302,8 +305,11 @@
     document.body.removeChild(a);
   }
 
+  // Start: bouw knoppen op
   bouwKnoppen();
-  setInterval(bouwKnoppen, 60 * 1000);
+
+  // Herlaad de links elke 5 minuten zodat nieuwe uploads automatisch verschijnen
+  setInterval(bouwKnoppen, 5 * 60 * 1000);
 </script>
 </body>
 </html>

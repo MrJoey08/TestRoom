@@ -2,13 +2,12 @@ const https = require('https');
 
 const ORIGIN = 'rw.altenacollege.nl';
 
-// Haal bytes op van de originele server (SSL-check uitgeschakeld)
 function haalOp(path) {
   return new Promise((resolve, reject) => {
     const req = https.get(
       {
         hostname: ORIGIN,
-        path,
+        path: path,
         rejectUnauthorized: false,
         headers: { 'User-Agent': 'Mozilla/5.0' }
       },
@@ -19,25 +18,26 @@ function haalOp(path) {
       }
     );
     req.on('error', reject);
-    req.setTimeout(12000, () => { req.destroy(); reject(new Error('timeout')); });
+    req.setTimeout(15000, () => { req.destroy(); reject(new Error('timeout')); });
   });
 }
 
-// Vind een .pdf bestandsnaam via directory listing van /vandaag/ of /morgen/
-async function vindPdf(map) {
-  const { body } = await haalOp(`/${map}/`);
-  const html = body.toString('utf8');
-  // nginx/apache directory listing: <a href="bestand.pdf">
-  const m = html.match(/href="([^"?#]*\.pdf)"/i) || html.match(/([\w%.\-]+\.pdf)/i);
-  return m ? decodeURIComponent(m[1].split('/').pop()) : null;
-}
-
-// Vind het infobord pptx-bestand op de hoofdpagina
-async function vindPptx() {
+// Scrape de hoofdpagina en haal de drie links eruit
+async function haalLinks() {
   const { body } = await haalOp('/');
   const html = body.toString('utf8');
-  const m = html.match(/href="([^"?#]*\.pptx)"/i) || html.match(/([\w%.\-]+\.pptx)/i);
-  return m ? decodeURIComponent(m[1].split('/').pop()) : 'infobord.pptx';
+
+  // Zoek alle href="..." links die eindigen op .pdf of .pptx
+  const regex = /href="([^"]+\.(pdf|pptx))"/gi;
+  const links = {};
+  let m;
+  while ((m = regex.exec(html)) !== null) {
+    const pad = m[1]; // bijv. "vandaag/2026-12-03-do timestamp=....pdf"
+    if (pad.startsWith('vandaag/')) links.vandaag = pad;
+    else if (pad.startsWith('morgen/')) links.morgen = pad;
+    else if (pad.startsWith('info/'))   links.infobord = pad;
+  }
+  return links;
 }
 
 module.exports = async (req, res) => {
@@ -46,12 +46,16 @@ module.exports = async (req, res) => {
   const { map, bestand } = req.query;
 
   try {
-    // ── PDF: /api/proxy?map=vandaag  of  ?map=morgen ────────────────
-    if (map && ['vandaag', 'morgen'].includes(map)) {
-      const naam = await vindPdf(map);
-      if (!naam) return res.status(404).json({ error: `Geen PDF in /${map}/` });
+    const links = await haalLinks();
 
-      const upstream = await haalOp(`/${map}/${encodeURIComponent(naam)}`);
+    // ── /api/proxy?map=vandaag  of  ?map=morgen ─────────────────────
+    if (map && ['vandaag', 'morgen'].includes(map)) {
+      const pad = links[map];
+      if (!pad) return res.status(404).json({ error: `Geen PDF gevonden voor ${map}` });
+
+      const upstream = await haalOp('/' + encodeURI(pad));
+      if (upstream.status === 404) return res.status(404).json({ error: 'PDF niet gevonden op server' });
+
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Cache-Control', 'public, max-age=1800');
       if (upstream.headers['content-length'])
@@ -59,12 +63,16 @@ module.exports = async (req, res) => {
       return res.status(200).end(upstream.body);
     }
 
-    // ── PPTX: /api/proxy?bestand=infobord ───────────────────────────
+    // ── /api/proxy?bestand=infobord ──────────────────────────────────
     if (bestand === 'infobord') {
-      const naam = await vindPptx();
-      const upstream = await haalOp(`/${naam}`);
+      const pad = links.infobord;
+      if (!pad) return res.status(404).json({ error: 'Infobord niet gevonden' });
+
+      const upstream = await haalOp('/' + encodeURI(pad));
+      const bestandsnaam = pad.split('/').pop();
+
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
-      res.setHeader('Content-Disposition', 'attachment; filename="infobord.pptx"');
+      res.setHeader('Content-Disposition', `attachment; filename="${bestandsnaam}"`);
       res.setHeader('Cache-Control', 'public, max-age=3600');
       return res.status(200).end(upstream.body);
     }
