@@ -169,9 +169,11 @@
 
     .iframe-wrapper iframe {
       position: absolute;
-      /* 17px extra zodat scrollbar buiten beeld valt */
-      top: 0; left: 0;
-      width: calc(100% + 17px);
+      top: 0;
+      /* Schuif 200px naar links om de thumbnail-sidebar af te knippen,
+         en compenseer die 200px door de iframe breder te maken */
+      left: -200px;
+      width: calc(100% + 200px + 17px);
       height: calc(100% + 17px);
       border: none;
     }
@@ -331,7 +333,7 @@
     const url  = URL.createObjectURL(blob);
 
     if (cached && cached.blobUrl) URL.revokeObjectURL(cached.blobUrl);
-    pdfCache[map] = { blobUrl: url, etag, proxyUrl: '/api/proxy?map=' + map };
+    pdfCache[map] = { blobUrl: url, etag, proxyUrl: '/api/proxy?map=' + map, label: document.querySelector('.date-btn.datum-btn[data-map="' + map + '"]')?.getAttribute('data-label') || map };
 
     if (map === activePdfMap) zetPdfInViewer(map);
   }
@@ -340,12 +342,14 @@
     const cached = pdfCache[map];
     if (!cached) return;
 
-    // PC: blob in iframe
+    // PC: blob in iframe, view=Fit zodat hele pagina past
     document.getElementById('pdfFrame').src =
-      cached.blobUrl + '#toolbar=0&navpanes=0&scrollbar=0&view=FitH';
+      cached.blobUrl + '#toolbar=0&navpanes=0&scrollbar=0&view=Fit&page=1';
 
-    // Mobiel: directe proxy-link in nieuw tabblad
-    document.getElementById('pdfMobielLink').href = cached.proxyUrl;
+    // Mobiel: directe link in nieuw tabblad met datum als tekst
+    var link = document.getElementById('pdfMobielLink');
+    link.href = cached.proxyUrl;
+    link.textContent = 'Open ' + (cached.label || map) + ' ↗';
   }
 
   function openPdf(btn) {
