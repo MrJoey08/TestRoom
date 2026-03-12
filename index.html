@@ -182,17 +182,6 @@
       text-align: center;
     }
 
-    .pdf-mobiel a {
-      display: inline-block;
-      padding: 12px 28px;
-      background: var(--accent);
-      color: #fff;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      font-weight: 500;
-      text-decoration: none;
-    }
-
     /* Op touch-apparaten: verberg iframe, toon knop */
     @media (hover: none) and (pointer: coarse) {
       .iframe-wrapper { display: none; }
@@ -236,7 +225,7 @@
     </div>
     <!-- Mobiel: open in nieuw tabblad -->
     <div class="pdf-mobiel">
-      <a id="pdfMobielLink" href="#" target="_blank">Bekijk roosterwijziging ↗</a>
+      <button id="pdfMobielBtn" onclick="openMobielPdf()" class="date-btn" style="width:auto; padding: 14px 40px;">Open</button>
     </div>
   </div>
 
@@ -362,11 +351,7 @@
 
     // Mobiel: directe link in nieuw tabblad met datum als tekst
     // Label is bijv. "vr 13 mar" — omzetten naar "13-03-2026" voor bestandsnaam
-    var label = cached.label || map;
-    var link = document.getElementById('pdfMobielLink');
-    link.href = cached.proxyUrl;
-    link.setAttribute('download', labelNaarBestandsnaam(label));
-    link.textContent = 'Open ' + label + ' ↗';
+    // mobiele knop hoeft niks te updaten — openMobielPdf() pakt activePdfMap
   }
 
   function openPdf(btn) {
@@ -387,6 +372,10 @@
     } else {
       laadPdf(map, true);
     }
+  }
+
+  function openMobielPdf() {
+    if (activePdfMap) window.open('/api/proxy?map=' + activePdfMap, '_blank');
   }
 
   function closePdf() {
