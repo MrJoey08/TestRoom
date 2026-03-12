@@ -169,11 +169,8 @@
 
     .iframe-wrapper iframe {
       position: absolute;
-      top: 0;
-      /* Schuif 200px naar links om de thumbnail-sidebar af te knippen,
-         en compenseer die 200px door de iframe breder te maken */
-      left: -200px;
-      width: calc(100% + 200px + 17px);
+      top: 0; left: 0;
+      width: calc(100% + 17px);
       height: calc(100% + 17px);
       border: none;
     }
@@ -344,7 +341,7 @@
 
     // PC: blob in iframe, view=Fit zodat hele pagina past
     document.getElementById('pdfFrame').src =
-      cached.blobUrl + '#toolbar=0&navpanes=0&scrollbar=0&view=Fit&page=1';
+      cached.blobUrl + '#toolbar=0&navpanes=0&scrollbar=0&view=Fit&pagemode=none';
 
     // Mobiel: directe link in nieuw tabblad met datum als tekst
     var link = document.getElementById('pdfMobielLink');

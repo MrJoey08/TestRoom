@@ -32,8 +32,9 @@ async function vindPdf(map) {
 async function vindPptx() {
   const { body } = await haalOp('/');
   const html = body.toString('utf8');
-  const m = html.match(/href="([^"?#]*\.pptx)"/i) || html.match(/([\w%.\-]+\.pptx)/i);
-  return m ? decodeURIComponent(m[1].split('/').pop()) : 'infobord.pptx';
+  // Haal het volledige pad op, bijv. "info/Week 11.pptx"
+  const m = html.match(/href="([^"?#]*\.pptx)"/i);
+  return m ? decodeURIComponent(m[1]) : 'info/infobord.pptx';
 }
 
 module.exports = async (req, res) => {
@@ -71,10 +72,12 @@ module.exports = async (req, res) => {
 
     // ── PPTX: ?bestand=infobord ──────────────────────────────────────
     if (bestand === 'infobord') {
-      const naam = await vindPptx();
-      const upstream = await haalOp(`/${naam}`);
+      const pad  = await vindPptx();               // bijv. "info/Week 11.pptx"
+      const naam = pad.split('/').pop();            // bijv. "Week 11.pptx"
+      const upstream = await haalOp('/' + encodeURI(pad));
+      if (upstream.status === 404) return res.status(404).json({ error: 'Infobord niet gevonden' });
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
-      res.setHeader('Content-Disposition', `attachment; filename="${naam}"`);
+      res.setHeader('Content-Disposition', 'attachment; filename="' + naam + '"');
       res.setHeader('Cache-Control', 'public, max-age=3600');
       return res.status(200).end(upstream.body);
     }
