@@ -10,17 +10,14 @@
       --bg:        #1a1a1a;
       --surface:   #242424;
       --border:    #2e2e2e;
-      --accent:    #e8634a;   /* oranje-roze zoals BRIAS */
-      --accent2:   #d45a72;   /* roze variant */
+      --accent:    #e8634a;
+      --accent2:   #d45a72;
       --text:      #e8e0d8;
       --muted:     #6b6560;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    html, body {
-      height: 100%;
-    }
+    html, body { height: 100%; }
 
     body {
       background: var(--bg);
@@ -39,7 +36,6 @@
       width: 100%;
     }
 
-    /* ── Header ── */
     header {
       width: 100%;
       padding: 48px 24px 32px;
@@ -67,7 +63,6 @@
       color: var(--muted);
     }
 
-    /* ── Date buttons ── */
     .dates {
       display: flex;
       flex-direction: column;
@@ -90,10 +85,7 @@
       margin-bottom: 2px;
     }
 
-    .sectie-spacer {
-      width: 100%;
-      margin-top: 8px;
-    }
+    .sectie-spacer { width: 100%; margin-top: 8px; }
 
     .date-btn {
       width: 100%;
@@ -121,18 +113,12 @@
     }
 
     .date-btn:hover::before,
-    .date-btn.active::before {
-      opacity: 0.12;
-    }
+    .date-btn.active::before { opacity: 0.12; }
 
-    .date-btn.active {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
+    .date-btn.active { border-color: var(--accent); color: var(--accent); }
     .date-btn span { position: relative; z-index: 1; }
 
-    /* ── PDF viewer ── */
+    /* ── PDF hok ── */
     .pdf-container {
       display: none;
       width: calc(100% - 48px);
@@ -172,31 +158,48 @@
     }
     .pdf-close:hover { color: var(--accent); }
 
+    /* A4 verhouding — PDF past altijd volledig in het hok */
     .iframe-wrapper {
       width: 100%;
       aspect-ratio: 1 / 1.4142;
       position: relative;
       overflow: hidden;
+      background: #fff;
     }
 
     .iframe-wrapper iframe {
       position: absolute;
-      inset: 0;
-      /* iets groter dan 100% zodat de browser-scrollbar buiten beeld valt */
+      /* 17px extra zodat scrollbar buiten beeld valt */
+      top: 0; left: 0;
       width: calc(100% + 17px);
       height: calc(100% + 17px);
       border: none;
-      display: block;
     }
 
-    .no-pdf {
-      padding: 48px;
+    /* Mobiel: geen iframe maar een "open" knop */
+    .pdf-mobiel {
+      display: none;
+      padding: 32px 24px;
       text-align: center;
-      color: var(--muted);
-      font-size: 0.9rem;
     }
 
-    /* ── Footer ── */
+    .pdf-mobiel a {
+      display: inline-block;
+      padding: 12px 28px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    /* Op touch-apparaten: verberg iframe, toon knop */
+    @media (hover: none) and (pointer: coarse) {
+      .iframe-wrapper { display: none; }
+      .pdf-mobiel     { display: block; }
+    }
+
     footer {
       margin-top: auto;
       padding: 24px;
@@ -216,9 +219,6 @@
 
   <div class="dates" id="dates">
     <div class="sectie-label">Roosterwijzigingen</div>
-
-    <!-- datum-knoppen komen hier via JS -->
-
     <div class="sectie-spacer"></div>
     <div class="sectie-label">Informatie</div>
     <button class="date-btn" id="infobordBtn" style="display:none" onclick="downloadInfobord()">
@@ -226,51 +226,51 @@
     </button>
   </div>
 
-  <!-- PDF viewer -->
   <div class="pdf-container" id="pdfContainer">
     <div class="pdf-header">
       <span class="pdf-label" id="pdfLabel"></span>
       <button class="pdf-close" onclick="closePdf()">✕</button>
     </div>
+    <!-- PC: iframe -->
     <div class="iframe-wrapper">
       <iframe id="pdfFrame" title="Roosterwijziging PDF"></iframe>
+    </div>
+    <!-- Mobiel: open in nieuw tabblad -->
+    <div class="pdf-mobiel">
+      <a id="pdfMobielLink" href="#" target="_blank">Bekijk roosterwijziging ↗</a>
     </div>
   </div>
 
   <footer>empowered by Joey Haks</footer>
 
-</div> <!-- /page-content -->
+</div>
 
 <script>
-  let cachedLinks = null;
-  let pdfCache    = {};   // { map: { blobUrl, etag } }
+  let cachedLinks  = null;
+  let pdfCache     = {};
   let herlaadTimer = null;
   let activePdfMap = null;
 
   // ── Tijdschema ────────────────────────────────────────────────────
-  // 07:30–08:30 → elke 1 minuut
-  // 08:30–10:05 → elke 10 minuten
-  // 10:05–18:00 → elke 30 minuten
-  // 18:00–07:30 → niets
   function intervalVoorNu() {
     const nu  = new Date();
     const min = nu.getHours() * 60 + nu.getMinutes();
-    if (min >= 7*60+30  && min < 8*60+30)  return 1  * 60 * 1000;
-    if (min >= 8*60+30  && min < 10*60+5)  return 10 * 60 * 1000;
-    if (min >= 10*60+5  && min < 18*60)    return 30 * 60 * 1000;
-    return null;
+    if (min >= 7*60+30 && min < 8*60+30)  return 1  * 60 * 1000;
+    if (min >= 8*60+30 && min < 10*60+5)  return 10 * 60 * 1000;
+    if (min >= 10*60+5 && min < 18*60)    return 30 * 60 * 1000;
+    return null; // nacht
   }
 
   function planHerlaad() {
     if (herlaadTimer) clearTimeout(herlaadTimer);
     const interval = intervalVoorNu();
     if (!interval) {
-      // Wacht tot 07:30 (vandaag of morgen)
+      // Slaap tot 07:30
       const nu  = new Date();
       const min = nu.getHours() * 60 + nu.getMinutes();
-      const volgende730 = min < 7*60+30 ? 7*60+30 : 7*60+30 + 24*60;
-      herlaadTimer = setTimeout(function() { herlaadAlles(); planHerlaad(); },
-        (volgende730 - min) * 60 * 1000);
+      let minTot730 = (7*60+30) - min;
+      if (minTot730 <= 0) minTot730 += 24 * 60;
+      herlaadTimer = setTimeout(function() { herlaadAlles(); planHerlaad(); }, minTot730 * 60 * 1000);
       return;
     }
     herlaadTimer = setTimeout(function() { herlaadAlles(); planHerlaad(); }, interval);
@@ -278,10 +278,10 @@
 
   async function herlaadAlles() {
     await bouwKnoppen();
-    if (activePdfMap) await laadPdf(activePdfMap, true);
+    if (activePdfMap) await laadPdf(activePdfMap, false);
   }
 
-  // ── Links ophalen ─────────────────────────────────────────────────
+  // ── Links ─────────────────────────────────────────────────────────
   async function haalLinks(forceer) {
     if (cachedLinks && !forceer) return cachedLinks;
     const res = await fetch('/api/links');
@@ -294,7 +294,6 @@
     const container = document.getElementById('dates');
     const spacer    = container.querySelector('.sectie-spacer');
     container.querySelectorAll('.datum-btn').forEach(b => b.remove());
-
     try {
       const links = await haalLinks(true);
       ['vandaag', 'morgen'].forEach(function(map) {
@@ -315,7 +314,7 @@
     } catch(e) {}
   }
 
-  // ── PDF laden met ETag — vervangt blob alleen als inhoud veranderd ─
+  // ── PDF laden met ETag ────────────────────────────────────────────
   async function laadPdf(map, forceer) {
     const cached  = pdfCache[map];
     const headers = {};
@@ -325,23 +324,28 @@
     try { res = await fetch('/api/proxy?map=' + map, { headers }); }
     catch(e) { return; }
 
-    if (res.status === 304) {
-      // Niet veranderd — iframe al geladen, niets doen
-      return;
-    }
+    if (res.status === 304) return; // niet veranderd
 
     const etag = res.headers.get('ETag') || ('' + Date.now());
     const blob = await res.blob();
     const url  = URL.createObjectURL(blob);
 
     if (cached && cached.blobUrl) URL.revokeObjectURL(cached.blobUrl);
-    pdfCache[map] = { blobUrl: url, etag };
+    pdfCache[map] = { blobUrl: url, etag, proxyUrl: '/api/proxy?map=' + map };
 
-    // Alleen iframe updaten als deze map nog actief is
-    if (map === activePdfMap) {
-      document.getElementById('pdfFrame').src =
-        url + '#toolbar=0&navpanes=0&scrollbar=0&view=FitH';
-    }
+    if (map === activePdfMap) zetPdfInViewer(map);
+  }
+
+  function zetPdfInViewer(map) {
+    const cached = pdfCache[map];
+    if (!cached) return;
+
+    // PC: blob in iframe
+    document.getElementById('pdfFrame').src =
+      cached.blobUrl + '#toolbar=0&navpanes=0&scrollbar=0&view=FitH';
+
+    // Mobiel: directe proxy-link in nieuw tabblad
+    document.getElementById('pdfMobielLink').href = cached.proxyUrl;
   }
 
   function openPdf(btn) {
@@ -356,13 +360,11 @@
     document.getElementById('pdfContainer').classList.add('visible');
     document.getElementById('pdfContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-    // Al gecached? Direct tonen + op achtergrond checken op wijziging
     if (pdfCache[map]) {
-      document.getElementById('pdfFrame').src =
-        pdfCache[map].blobUrl + '#toolbar=0&navpanes=0&scrollbar=0&view=FitH';
+      zetPdfInViewer(map);
       laadPdf(map, false); // stille check op wijziging
     } else {
-      laadPdf(map, true);  // eerste keer: gewoon laden
+      laadPdf(map, true);
     }
   }
 
@@ -382,10 +384,8 @@
     document.body.removeChild(a);
   }
 
-  // Start
   bouwKnoppen();
   planHerlaad();
 </script>
-
 </body>
 </html>
