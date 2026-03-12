@@ -174,16 +174,17 @@
 
     .iframe-wrapper {
       width: 100%;
-      /* A4 verhouding: hoogte = breedte × 1.4142 */
       aspect-ratio: 1 / 1.4142;
       position: relative;
+      overflow: hidden;
     }
 
     .iframe-wrapper iframe {
       position: absolute;
       inset: 0;
-      width: 100%;
-      height: 100%;
+      /* iets groter dan 100% zodat de browser-scrollbar buiten beeld valt */
+      width: calc(100% + 17px);
+      height: calc(100% + 17px);
       border: none;
       display: block;
     }
@@ -242,8 +243,45 @@
 
 <script>
   let cachedLinks = null;
+  let pdfCache    = {};   // { map: { blobUrl, etag } }
+  let herlaadTimer = null;
+  let activePdfMap = null;
 
-  // Haal de links op van de proxy (scrapt live rw.altenacollege.nl)
+  // ── Tijdschema ────────────────────────────────────────────────────
+  // 07:30–08:30 → elke 1 minuut
+  // 08:30–10:05 → elke 10 minuten
+  // 10:05–18:00 → elke 30 minuten
+  // 18:00–07:30 → niets
+  function intervalVoorNu() {
+    const nu  = new Date();
+    const min = nu.getHours() * 60 + nu.getMinutes();
+    if (min >= 7*60+30  && min < 8*60+30)  return 1  * 60 * 1000;
+    if (min >= 8*60+30  && min < 10*60+5)  return 10 * 60 * 1000;
+    if (min >= 10*60+5  && min < 18*60)    return 30 * 60 * 1000;
+    return null;
+  }
+
+  function planHerlaad() {
+    if (herlaadTimer) clearTimeout(herlaadTimer);
+    const interval = intervalVoorNu();
+    if (!interval) {
+      // Wacht tot 07:30 (vandaag of morgen)
+      const nu  = new Date();
+      const min = nu.getHours() * 60 + nu.getMinutes();
+      const volgende730 = min < 7*60+30 ? 7*60+30 : 7*60+30 + 24*60;
+      herlaadTimer = setTimeout(function() { herlaadAlles(); planHerlaad(); },
+        (volgende730 - min) * 60 * 1000);
+      return;
+    }
+    herlaadTimer = setTimeout(function() { herlaadAlles(); planHerlaad(); }, interval);
+  }
+
+  async function herlaadAlles() {
+    await bouwKnoppen();
+    if (activePdfMap) await laadPdf(activePdfMap, true);
+  }
+
+  // ── Links ophalen ─────────────────────────────────────────────────
   async function haalLinks(forceer) {
     if (cachedLinks && !forceer) return cachedLinks;
     const res = await fetch('/api/links');
@@ -255,35 +293,54 @@
   async function bouwKnoppen() {
     const container = document.getElementById('dates');
     const spacer    = container.querySelector('.sectie-spacer');
-
-    // Verwijder eventuele oude datum-knoppen
     container.querySelectorAll('.datum-btn').forEach(b => b.remove());
 
     try {
       const links = await haalLinks(true);
-
       ['vandaag', 'morgen'].forEach(function(map) {
         const info = links[map];
         if (!info) return;
-
         const btn = document.createElement('button');
         btn.className = 'date-btn datum-btn';
         btn.setAttribute('data-map', map);
         btn.setAttribute('data-label', info.label);
         btn.onclick = function() { openPdf(this); };
         btn.innerHTML = '<span>' + info.label + '</span>';
-
         container.insertBefore(btn, spacer);
       });
-
-      // Infobord knop zichtbaar maken met juiste label
       if (links.infobord) {
         document.getElementById('infobordLabel').textContent = links.infobord.label || 'Infobord';
         document.getElementById('infobordBtn').style.display = '';
       }
+    } catch(e) {}
+  }
 
-    } catch(e) {
-      // stil falen — knoppen blijven leeg
+  // ── PDF laden met ETag — vervangt blob alleen als inhoud veranderd ─
+  async function laadPdf(map, forceer) {
+    const cached  = pdfCache[map];
+    const headers = {};
+    if (cached && !forceer) headers['If-None-Match'] = cached.etag;
+
+    let res;
+    try { res = await fetch('/api/proxy?map=' + map, { headers }); }
+    catch(e) { return; }
+
+    if (res.status === 304) {
+      // Niet veranderd — iframe al geladen, niets doen
+      return;
+    }
+
+    const etag = res.headers.get('ETag') || ('' + Date.now());
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+
+    if (cached && cached.blobUrl) URL.revokeObjectURL(cached.blobUrl);
+    pdfCache[map] = { blobUrl: url, etag };
+
+    // Alleen iframe updaten als deze map nog actief is
+    if (map === activePdfMap) {
+      document.getElementById('pdfFrame').src =
+        url + '#toolbar=0&navpanes=0&scrollbar=0&view=FitH';
     }
   }
 
@@ -293,26 +350,24 @@
 
     const map   = btn.getAttribute('data-map');
     const label = btn.getAttribute('data-label');
+    activePdfMap = map;
 
-    const container = document.getElementById('pdfContainer');
-    const frame     = document.getElementById('pdfFrame');
-    const lbl       = document.getElementById('pdfLabel');
+    document.getElementById('pdfLabel').textContent = label;
+    document.getElementById('pdfContainer').classList.add('visible');
+    document.getElementById('pdfContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-    lbl.textContent = label;
-    container.classList.add('visible');
-    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-    // Laad PDF als blob zodat #-parameters (geen sidebar/toolbar) wél werken
-    frame.src = '';
-    fetch('/api/proxy?map=' + map)
-      .then(function(r) { return r.blob(); })
-      .then(function(blob) {
-        const url = URL.createObjectURL(blob);
-        frame.src = url + '#toolbar=0&navpanes=0&scrollbar=0&view=FitH';
-      });
+    // Al gecached? Direct tonen + op achtergrond checken op wijziging
+    if (pdfCache[map]) {
+      document.getElementById('pdfFrame').src =
+        pdfCache[map].blobUrl + '#toolbar=0&navpanes=0&scrollbar=0&view=FitH';
+      laadPdf(map, false); // stille check op wijziging
+    } else {
+      laadPdf(map, true);  // eerste keer: gewoon laden
+    }
   }
 
   function closePdf() {
+    activePdfMap = null;
     document.getElementById('pdfContainer').classList.remove('visible');
     document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('pdfFrame').src = '';
@@ -329,9 +384,7 @@
 
   // Start
   bouwKnoppen();
-
-  // Refresh elke 5 minuten zodat nieuwe uploads automatisch verschijnen
-  setInterval(bouwKnoppen, 5 * 60 * 1000);
+  planHerlaad();
 </script>
 
 </body>

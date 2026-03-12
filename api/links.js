@@ -24,21 +24,21 @@ function haalOp(path) {
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Cache-Control', 'no-store'); // altijd vers ophalen
+  // Links zelf worden nooit gecached — altijd vers ophalen zodat nieuwe
+  // uploads op de originele site meteen zichtbaar zijn.
+  res.setHeader('Cache-Control', 'no-store');
 
   try {
     const { body } = await haalOp('/');
     const html = body.toString('utf8');
 
-    // Haal de knoppen op: <a href="vandaag/....pdf" class="button primary">do 12 Mar</a>
-    // en het infobord:    <a href="info/....pptx"  class="button primary2">Infobord</a>
     const btnRegex = /href="([^"]+\.(pdf|pptx))"[^>]*>([^<]+)</gi;
     const result = { vandaag: null, morgen: null, infobord: null };
 
     let m;
     while ((m = btnRegex.exec(html)) !== null) {
-      const pad   = m[1];  // bijv. "vandaag/2026-12-03-do timestamp=....pdf"
-      const label = m[3].trim(); // bijv. "do 12 Mar"
+      const pad   = m[1];
+      const label = m[3].trim();
 
       if (pad.startsWith('vandaag/'))
         result.vandaag  = { map: 'vandaag', label };
