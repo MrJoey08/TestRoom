@@ -299,11 +299,17 @@
     const lbl       = document.getElementById('pdfLabel');
 
     lbl.textContent = label;
-    // Proxy haalt de juiste PDF op via /vandaag/ of /morgen/ map
-    frame.src = '/api/proxy?map=' + map;
     container.classList.add('visible');
-
     container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Laad PDF als blob zodat #-parameters (geen sidebar/toolbar) wél werken
+    frame.src = '';
+    fetch('/api/proxy?map=' + map)
+      .then(function(r) { return r.blob(); })
+      .then(function(blob) {
+        const url = URL.createObjectURL(blob);
+        frame.src = url + '#toolbar=0&navpanes=0&scrollbar=0&view=FitH';
+      });
   }
 
   function closePdf() {
