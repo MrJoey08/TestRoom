@@ -10,15 +10,17 @@
       --bg:        #1a1a1a;
       --surface:   #242424;
       --border:    #2e2e2e;
-      --accent:    #e8634a;
-      --accent2:   #d45a72;
+      --accent:    #e8634a;   /* oranje-roze zoals BRIAS */
+      --accent2:   #d45a72;   /* roze variant */
       --text:      #e8e0d8;
       --muted:     #6b6560;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    html, body { height: 100%; }
+    html, body {
+      height: 100%;
+    }
 
     body {
       background: var(--bg);
@@ -119,7 +121,9 @@
     }
 
     .date-btn:hover::before,
-    .date-btn.active::before { opacity: 0.12; }
+    .date-btn.active::before {
+      opacity: 0.12;
+    }
 
     .date-btn.active {
       border-color: var(--accent);
@@ -127,14 +131,6 @@
     }
 
     .date-btn span { position: relative; z-index: 1; }
-
-    .status-msg {
-      font-size: 0.85rem;
-      color: var(--muted);
-      text-align: center;
-      padding: 4px 0;
-    }
-    .status-msg.fout { color: var(--accent); }
 
     /* ── PDF viewer ── */
     .pdf-container {
@@ -192,6 +188,13 @@
       display: block;
     }
 
+    .no-pdf {
+      padding: 48px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
     /* ── Footer ── */
     footer {
       margin-top: auto;
@@ -213,7 +216,7 @@
   <div class="dates" id="dates">
     <div class="sectie-label">Roosterwijzigingen</div>
 
-    <!-- Datum-knoppen komen hier via JS, vóór de spacer -->
+    <!-- datum-knoppen komen hier via JS -->
 
     <div class="sectie-spacer"></div>
     <div class="sectie-label">Informatie</div>
@@ -222,7 +225,7 @@
     </button>
   </div>
 
-  <!-- PDF viewer — direct onder #dates, geen scroll -->
+  <!-- PDF viewer -->
   <div class="pdf-container" id="pdfContainer">
     <div class="pdf-header">
       <span class="pdf-label" id="pdfLabel"></span>
@@ -235,11 +238,12 @@
 
   <footer>empowered by Joey Haks</footer>
 
-</div>
+</div> <!-- /page-content -->
 
 <script>
   let cachedLinks = null;
 
+  // Haal de links op van de proxy (scrapt live rw.altenacollege.nl)
   async function haalLinks(forceer) {
     if (cachedLinks && !forceer) return cachedLinks;
     const res = await fetch('/api/links');
@@ -252,20 +256,11 @@
     const container = document.getElementById('dates');
     const spacer    = container.querySelector('.sectie-spacer');
 
-    // Verwijder oude datum-knoppen
-    container.querySelectorAll('.datum-btn').forEach(function(b) { b.remove(); });
-
-    // Tijdelijk laad-indicator invoegen vóór spacer
-    const laadbericht = document.createElement('div');
-    laadbericht.className = 'status-msg datum-btn';
-    laadbericht.textContent = 'Laden…';
-    container.insertBefore(laadbericht, spacer);
+    // Verwijder eventuele oude datum-knoppen
+    container.querySelectorAll('.datum-btn').forEach(b => b.remove());
 
     try {
       const links = await haalLinks(true);
-
-      // Verwijder laad-indicator
-      laadbericht.remove();
 
       ['vandaag', 'morgen'].forEach(function(map) {
         const info = links[map];
@@ -274,49 +269,52 @@
         const btn = document.createElement('button');
         btn.className = 'date-btn datum-btn';
         btn.setAttribute('data-map', map);
+        btn.setAttribute('data-label', info.label);
+        btn.onclick = function() { openPdf(this); };
         btn.innerHTML = '<span>' + info.label + '</span>';
-        btn.onclick = function() { openPdf(this, map, info.label); };
+
         container.insertBefore(btn, spacer);
       });
 
-      // Als er helemaal geen knoppen zijn
-      if (!container.querySelector('button.datum-btn')) {
-        const msg = document.createElement('div');
-        msg.className = 'status-msg datum-btn';
-        msg.textContent = 'Geen roosterwijzigingen beschikbaar.';
-        container.insertBefore(msg, spacer);
-      }
-
-      // Infobord knop
+      // Infobord knop zichtbaar maken met juiste label
       if (links.infobord) {
         document.getElementById('infobordLabel').textContent = links.infobord.label || 'Infobord';
         document.getElementById('infobordBtn').style.display = '';
       }
 
-    } catch (e) {
-      laadbericht.className = 'status-msg fout datum-btn';
-      laadbericht.textContent = 'Kon roosterwijzigingen niet ophalen.';
+    } catch(e) {
+      // stil falen — knoppen blijven leeg
     }
   }
 
-  function openPdf(btn, map, label) {
-    document.querySelectorAll('.date-btn').forEach(function(b) { b.classList.remove('active'); });
+  function openPdf(btn) {
+    document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
 
-    document.getElementById('pdfLabel').textContent = label;
-    document.getElementById('pdfFrame').src = '/api/proxy?map=' + map;
-    document.getElementById('pdfContainer').classList.add('visible');
+    const map   = btn.getAttribute('data-map');
+    const label = btn.getAttribute('data-label');
+
+    const container = document.getElementById('pdfContainer');
+    const frame     = document.getElementById('pdfFrame');
+    const lbl       = document.getElementById('pdfLabel');
+
+    lbl.textContent = label;
+    // Proxy haalt de juiste PDF op via /vandaag/ of /morgen/ map
+    frame.src = '/api/proxy?map=' + map;
+    container.classList.add('visible');
+
+    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function closePdf() {
     document.getElementById('pdfContainer').classList.remove('visible');
-    document.querySelectorAll('.date-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('pdfFrame').src = '';
   }
 
   function downloadInfobord() {
-    var a = document.createElement('a');
-    a.href     = '/api/proxy?bestand=infobord';
+    const a = document.createElement('a');
+    a.href = '/api/proxy?bestand=infobord';
     a.download = 'infobord.pptx';
     document.body.appendChild(a);
     a.click();
@@ -329,5 +327,6 @@
   // Refresh elke 5 minuten zodat nieuwe uploads automatisch verschijnen
   setInterval(bouwKnoppen, 5 * 60 * 1000);
 </script>
+
 </body>
 </html>
