@@ -335,6 +335,23 @@
     if (map === activePdfMap) zetPdfInViewer(map);
   }
 
+  // Zet "vr 13 mar" om naar "13-03-2026.pdf"
+  function labelNaarBestandsnaam(label) {
+    var MAANDEN = { jan:'01', feb:'02', mar:'03', apr:'04', mei:'05', jun:'06',
+                    jul:'07', aug:'08', sep:'09', okt:'10', nov:'11', dec:'12' };
+    var delen = label.trim().toLowerCase().split(/\s+/); // ["vr","13","mar"]
+    if (delen.length >= 3) {
+      var dag  = delen[1].padStart(2, '0');
+      var mnd  = MAANDEN[delen[2]] || '00';
+      var jaar = new Date().getFullYear();
+      // Als de maand al voorbij is, dan volgend jaar
+      var nu = new Date();
+      if (parseInt(mnd) < nu.getMonth() + 1) jaar++;
+      return dag + '-' + mnd + '-' + jaar + '.pdf';
+    }
+    return label + '.pdf';
+  }
+
   function zetPdfInViewer(map) {
     const cached = pdfCache[map];
     if (!cached) return;
@@ -344,9 +361,12 @@
       cached.blobUrl + '#toolbar=0&navpanes=0&scrollbar=0&view=Fit&pagemode=none';
 
     // Mobiel: directe link in nieuw tabblad met datum als tekst
+    // Label is bijv. "vr 13 mar" — omzetten naar "13-03-2026" voor bestandsnaam
+    var label = cached.label || map;
     var link = document.getElementById('pdfMobielLink');
     link.href = cached.proxyUrl;
-    link.textContent = 'Open ' + (cached.label || map) + ' ↗';
+    link.setAttribute('download', labelNaarBestandsnaam(label));
+    link.textContent = 'Open ' + label + ' ↗';
   }
 
   function openPdf(btn) {
