@@ -132,7 +132,7 @@
       font-size: 0.85rem;
       color: var(--muted);
       text-align: center;
-      padding: 8px 0;
+      padding: 4px 0;
     }
     .status-msg.fout { color: var(--accent); }
 
@@ -178,7 +178,7 @@
 
     .iframe-wrapper {
       width: 100%;
-      /* A4 verhouding */
+      /* A4 verhouding: hoogte = breedte × 1.4142 */
       aspect-ratio: 1 / 1.4142;
       position: relative;
     }
@@ -213,19 +213,16 @@
   <div class="dates" id="dates">
     <div class="sectie-label">Roosterwijzigingen</div>
 
-    <div id="rwKnoppen">
-      <div class="status-msg" id="statusMsg">Laden…</div>
-    </div>
+    <!-- Datum-knoppen komen hier via JS, vóór de spacer -->
 
     <div class="sectie-spacer"></div>
     <div class="sectie-label">Informatie</div>
-
     <button class="date-btn" id="infobordBtn" style="display:none" onclick="downloadInfobord()">
       <span id="infobordLabel">Infobord</span>
     </button>
   </div>
 
-  <!-- PDF viewer — staat al in de DOM, wordt zichtbaar na klik -->
+  <!-- PDF viewer — direct onder #dates, geen scroll -->
   <div class="pdf-container" id="pdfContainer">
     <div class="pdf-header">
       <span class="pdf-label" id="pdfLabel"></span>
@@ -252,11 +249,23 @@
   }
 
   async function bouwKnoppen() {
-    const container = document.getElementById('rwKnoppen');
+    const container = document.getElementById('dates');
+    const spacer    = container.querySelector('.sectie-spacer');
+
+    // Verwijder oude datum-knoppen
+    container.querySelectorAll('.datum-btn').forEach(function(b) { b.remove(); });
+
+    // Tijdelijk laad-indicator invoegen vóór spacer
+    const laadbericht = document.createElement('div');
+    laadbericht.className = 'status-msg datum-btn';
+    laadbericht.textContent = 'Laden…';
+    container.insertBefore(laadbericht, spacer);
 
     try {
       const links = await haalLinks(true);
-      container.innerHTML = '';
+
+      // Verwijder laad-indicator
+      laadbericht.remove();
 
       ['vandaag', 'morgen'].forEach(function(map) {
         const info = links[map];
@@ -267,37 +276,36 @@
         btn.setAttribute('data-map', map);
         btn.innerHTML = '<span>' + info.label + '</span>';
         btn.onclick = function() { openPdf(this, map, info.label); };
-        container.appendChild(btn);
+        container.insertBefore(btn, spacer);
       });
 
-      if (container.children.length === 0) {
-        container.innerHTML = '<div class="status-msg">Geen roosterwijzigingen beschikbaar.</div>';
+      // Als er helemaal geen knoppen zijn
+      if (!container.querySelector('button.datum-btn')) {
+        const msg = document.createElement('div');
+        msg.className = 'status-msg datum-btn';
+        msg.textContent = 'Geen roosterwijzigingen beschikbaar.';
+        container.insertBefore(msg, spacer);
       }
 
       // Infobord knop
       if (links.infobord) {
-        const btn = document.getElementById('infobordBtn');
         document.getElementById('infobordLabel').textContent = links.infobord.label || 'Infobord';
-        btn.style.display = '';
+        document.getElementById('infobordBtn').style.display = '';
       }
 
     } catch (e) {
-      container.innerHTML = '<div class="status-msg fout">Kon roosterwijzigingen niet ophalen.</div>';
+      laadbericht.className = 'status-msg fout datum-btn';
+      laadbericht.textContent = 'Kon roosterwijzigingen niet ophalen.';
     }
   }
 
   function openPdf(btn, map, label) {
-    // Zet actieve staat
     document.querySelectorAll('.date-btn').forEach(function(b) { b.classList.remove('active'); });
     btn.classList.add('active');
 
-    // Vul header in en laad PDF via proxy
     document.getElementById('pdfLabel').textContent = label;
     document.getElementById('pdfFrame').src = '/api/proxy?map=' + map;
-
-    // Toon de viewer direct onder de knoppen — geen scroll nodig
-    var container = document.getElementById('pdfContainer');
-    container.classList.add('visible');
+    document.getElementById('pdfContainer').classList.add('visible');
   }
 
   function closePdf() {
@@ -318,7 +326,7 @@
   // Start
   bouwKnoppen();
 
-  // Refresh links elke 5 minuten (nieuwe uploads verschijnen automatisch)
+  // Refresh elke 5 minuten zodat nieuwe uploads automatisch verschijnen
   setInterval(bouwKnoppen, 5 * 60 * 1000);
 </script>
 </body>
