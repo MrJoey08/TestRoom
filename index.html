@@ -7,16 +7,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg:      #1a1a1a;
-      --surface: #242424;
-      --border:  #2e2e2e;
-      --accent:  #e8634a;
-      --accent2: #d45a72;
-      --text:    #e8e0d8;
-      --muted:   #6b6560;
+      --bg:        #1a1a1a;
+      --surface:   #242424;
+      --border:    #2e2e2e;
+      --accent:    #e8634a;
+      --accent2:   #d45a72;
+      --text:      #e8e0d8;
+      --muted:     #6b6560;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
+
     html, body { height: 100%; }
 
     body {
@@ -36,6 +37,7 @@
       width: 100%;
     }
 
+    /* ── Header ── */
     header {
       width: 100%;
       padding: 48px 24px 32px;
@@ -63,6 +65,7 @@
       color: var(--muted);
     }
 
+    /* ── Date buttons ── */
     .dates {
       display: flex;
       flex-direction: column;
@@ -85,7 +88,10 @@
       margin-bottom: 2px;
     }
 
-    .sectie-spacer { width: 100%; margin-top: 8px; }
+    .sectie-spacer {
+      width: 100%;
+      margin-top: 8px;
+    }
 
     .date-btn {
       width: 100%;
@@ -114,20 +120,23 @@
 
     .date-btn:hover::before,
     .date-btn.active::before { opacity: 0.12; }
-    .date-btn.active { border-color: var(--accent); }
+
+    .date-btn.active {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
     .date-btn span { position: relative; z-index: 1; }
 
-    .date-btn.loading { opacity: 0.5; cursor: wait; }
-
     .status-msg {
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       color: var(--muted);
       text-align: center;
       padding: 8px 0;
     }
+    .status-msg.fout { color: var(--accent); }
 
-    .status-msg.fout { color: #e8634a; }
-
+    /* ── PDF viewer ── */
     .pdf-container {
       display: none;
       width: calc(100% - 48px);
@@ -169,6 +178,7 @@
 
     .iframe-wrapper {
       width: 100%;
+      /* A4 verhouding */
       aspect-ratio: 1 / 1.4142;
       position: relative;
     }
@@ -182,6 +192,7 @@
       display: block;
     }
 
+    /* ── Footer ── */
     footer {
       margin-top: auto;
       padding: 24px;
@@ -202,18 +213,19 @@
   <div class="dates" id="dates">
     <div class="sectie-label">Roosterwijzigingen</div>
 
-    <!-- Datum-knoppen komen hier via JS -->
     <div id="rwKnoppen">
       <div class="status-msg" id="statusMsg">Laden…</div>
     </div>
 
     <div class="sectie-spacer"></div>
     <div class="sectie-label">Informatie</div>
+
     <button class="date-btn" id="infobordBtn" style="display:none" onclick="downloadInfobord()">
       <span id="infobordLabel">Infobord</span>
     </button>
   </div>
 
+  <!-- PDF viewer — staat al in de DOM, wordt zichtbaar na klik -->
   <div class="pdf-container" id="pdfContainer">
     <div class="pdf-header">
       <span class="pdf-label" id="pdfLabel"></span>
@@ -229,35 +241,31 @@
 </div>
 
 <script>
-  // Cache van de opgehaalde links zodat knoppen instant reageren na eerste load
   let cachedLinks = null;
-  let bezig = false;
 
-  async function haalLinks(forceer = false) {
+  async function haalLinks(forceer) {
     if (cachedLinks && !forceer) return cachedLinks;
     const res = await fetch('/api/links');
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     cachedLinks = await res.json();
     return cachedLinks;
   }
 
   async function bouwKnoppen() {
     const container = document.getElementById('rwKnoppen');
-    const statusMsg = document.getElementById('statusMsg');
 
     try {
-      const links = await haalLinks(true); // altijd vers bij opbouw
-
+      const links = await haalLinks(true);
       container.innerHTML = '';
 
-      ['vandaag', 'morgen'].forEach((map) => {
+      ['vandaag', 'morgen'].forEach(function(map) {
         const info = links[map];
-        if (!info) return; // niet beschikbaar (bijv. vrijdagmiddag is morgen nog leeg)
+        if (!info) return;
 
         const btn = document.createElement('button');
         btn.className = 'date-btn datum-btn';
         btn.setAttribute('data-map', map);
-        btn.innerHTML = `<span>${info.label}</span>`;
+        btn.innerHTML = '<span>' + info.label + '</span>';
         btn.onclick = function() { openPdf(this, map, info.label); };
         container.appendChild(btn);
       });
@@ -268,9 +276,9 @@
 
       // Infobord knop
       if (links.infobord) {
-        const infobordBtn = document.getElementById('infobordBtn');
+        const btn = document.getElementById('infobordBtn');
         document.getElementById('infobordLabel').textContent = links.infobord.label || 'Infobord';
-        infobordBtn.style.display = '';
+        btn.style.display = '';
       }
 
     } catch (e) {
@@ -279,25 +287,27 @@
   }
 
   function openPdf(btn, map, label) {
-    if (bezig) return;
-    document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
+    // Zet actieve staat
+    document.querySelectorAll('.date-btn').forEach(function(b) { b.classList.remove('active'); });
     btn.classList.add('active');
 
+    // Vul header in en laad PDF via proxy
     document.getElementById('pdfLabel').textContent = label;
-    // Proxy haalt live de juiste PDF op uit de /vandaag/ of /morgen/ map
-    document.getElementById('pdfFrame').src = `/api/proxy?map=${map}`;
-    document.getElementById('pdfContainer').classList.add('visible');
-    document.getElementById('pdfContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('pdfFrame').src = '/api/proxy?map=' + map;
+
+    // Toon de viewer direct onder de knoppen — geen scroll nodig
+    var container = document.getElementById('pdfContainer');
+    container.classList.add('visible');
   }
 
   function closePdf() {
     document.getElementById('pdfContainer').classList.remove('visible');
-    document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.date-btn').forEach(function(b) { b.classList.remove('active'); });
     document.getElementById('pdfFrame').src = '';
   }
 
   function downloadInfobord() {
-    const a = document.createElement('a');
+    var a = document.createElement('a');
     a.href     = '/api/proxy?bestand=infobord';
     a.download = 'infobord.pptx';
     document.body.appendChild(a);
@@ -305,10 +315,10 @@
     document.body.removeChild(a);
   }
 
-  // Start: bouw knoppen op
+  // Start
   bouwKnoppen();
 
-  // Herlaad de links elke 5 minuten zodat nieuwe uploads automatisch verschijnen
+  // Refresh links elke 5 minuten (nieuwe uploads verschijnen automatisch)
   setInterval(bouwKnoppen, 5 * 60 * 1000);
 </script>
 </body>
