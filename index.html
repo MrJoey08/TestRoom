@@ -238,24 +238,30 @@
   </style>
   <style>
     /* ── Slide systeem ─────────────────────────────────────────── */
-    body { overflow-x: hidden; }
+    html, body { overflow-x: hidden; }
+
+    .slide-viewport {
+      width: 100vw;
+      overflow: hidden;
+      position: relative;
+    }
 
     .slide-wrapper {
       display: flex;
       width: 200vw;
-      min-height: 100dvh;
       transition: transform 0.55s cubic-bezier(0.77,0,0.18,1);
     }
     .slide-wrapper.op-rooster  { transform: translateX(-50%); }
     .slide-wrapper.op-portaal  { transform: translateX(0); }
 
     .slide {
-      width: 50vw;
+      width: 100vw;
       min-height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
       flex-shrink: 0;
+      overflow-x: hidden;
     }
 
     /* ── Tab knoppen ───────────────────────────────────────────── */
@@ -360,6 +366,7 @@
 <!-- Tab knop: naar portaal (zichtbaar op rooster-pagina, staat links) -->
 <button class="tab-btn tab-links"  id="tabNaarPortaal" onclick="gaNaar('portaal')" style="display:none">Portaal</button>
 
+<div class="slide-viewport">
 <div class="slide-wrapper" id="slideWrapper">
 
   <!-- ── Slide 1: Portaal (links) ── -->
@@ -463,6 +470,7 @@
   </div><!-- /slideRooster -->
 
 </div><!-- /slideWrapper -->
+</div><!-- /slideViewport -->
 
 <script>
 var isMobiel = window.matchMedia('(hover: none) and (pointer: coarse)').matches
