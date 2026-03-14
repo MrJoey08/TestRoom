@@ -671,11 +671,12 @@ async function haalLinks(forceer) {
 
 async function bouwKnoppen() {
   var container = document.getElementById('dates');
-  var spacer    = container.querySelector('.sectie-spacer');
   container.querySelectorAll('.datum-btn').forEach(function(b) { b.remove(); });
   try {
     var links = await haalLinks(true);
-    ['vandaag', 'morgen'].forEach(function(map) {
+    var labels = container.querySelectorAll('.sectie-label');
+    var insertNa = labels[0]; // na "Roosterwijzigingen" label
+    ['morgen', 'vandaag'].forEach(function(map) {
       var info = links[map];
       if (!info) return;
       var btn = document.createElement('button');
@@ -684,7 +685,7 @@ async function bouwKnoppen() {
       btn.setAttribute('data-label', info.label);
       btn.onclick = function() { openPdf(this); };
       btn.innerHTML = '<span>' + info.label + '</span>';
-      container.insertBefore(btn, spacer);
+      insertNa.insertAdjacentElement('afterend', btn);
     });
     if (links.infobord) {
       document.getElementById('infobordLabel').textContent = links.infobord.label || 'Infobord';
