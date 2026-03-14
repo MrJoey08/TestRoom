@@ -61,7 +61,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       margin-top: 40px;
       width: 100%;
       max-width: 320px;
@@ -76,8 +76,10 @@
       padding-bottom: 4px;
       border-bottom: 1px solid var(--border);
       margin-bottom: 2px;
+      margin-top: 16px;
     }
-    .sectie-spacer { width:100%; margin-top:8px; }
+    .sectie-label:first-child { margin-top: 0; }
+    .sectie-spacer { display: none; }
     .date-btn {
       width: 100%;
       padding: 14px 28px;
@@ -254,8 +256,16 @@
       width: 200vw;
       transition: transform 0.55s cubic-bezier(0.77,0,0.18,1);
     }
-    .slide-wrapper.op-rooster  { transform: translateX(-50%); }
-    .slide-wrapper.op-portaal  { transform: translateX(0); }
+    /* Mobiel: row normaal — rooster(slide1)=links=0, portaal(slide2)=rechts=-50% */
+    .slide-wrapper.op-rooster { transform: translateX(0); }
+    .slide-wrapper.op-portaal { transform: translateX(-50%); }
+
+    /* PC: row-reverse — portaal(slide2)=links=0, rooster(slide1)=rechts=-50% */
+    @media (min-width: 768px) {
+      .slide-wrapper { flex-direction: row-reverse; }
+      .slide-wrapper.op-portaal { transform: translateX(0); }
+      .slide-wrapper.op-rooster { transform: translateX(-50%); }
+    }
 
     .slide {
       width: 100vw;
@@ -271,7 +281,6 @@
     .tab-btn {
       position: fixed;
       top: 50%;
-      transform: translateY(-50%);
       z-index: 100;
       background: var(--surface);
       border: 1px solid var(--border);
@@ -285,62 +294,66 @@
       cursor: pointer;
       padding: 36px 10px;
       writing-mode: vertical-rl;
+      text-orientation: mixed;
       transition: color 0.2s, border-color 0.2s, background 0.2s;
       -webkit-appearance: none;
       appearance: none;
       -webkit-tap-highlight-color: transparent;
     }
     .tab-btn:hover { color: var(--accent); border-color: var(--accent); }
-    .tab-btn.tab-rechts { right: 12px; text-orientation: mixed; transform: translateY(-50%) rotate(180deg); }
-    .tab-btn.tab-links  { left: 12px;  text-orientation: mixed; }
 
-    /* Op mobiel: portaal staat rechts van rooster, dus knop naar portaal is rechts */
-    @media (hover: none) and (pointer: coarse) {
-      .tab-btn.tab-links  { left: auto; right: 12px; transform: translateY(-50%) rotate(180deg); }
-      .tab-btn.tab-rechts { right: auto; left: 12px; transform: translateY(-50%); }
+    /* Portaal knop rechts, rooster knop links — voor mobiel */
+    #tabNaarPortaal { right: 12px; transform: translateY(-50%) rotate(180deg); }
+    #tabNaarRooster { left: 12px;  transform: translateY(-50%); }
+
+    /* PC: na DOM-swap is portaal links en rooster rechts */
+    @media (min-width: 768px) {
+      #tabNaarPortaal { right: auto; left: 12px; transform: translateY(-50%); }
+      #tabNaarRooster { left: auto; right: 12px; transform: translateY(-50%) rotate(180deg); }
+    }
+    @media (max-width: 767px) {
       .tab-btn { padding: 28px 7px; font-size: 0.55rem; letter-spacing: 0.15em; }
     }
 
     /* ── Portaal pagina ────────────────────────────────────────── */
     .portaal-header {
       width: 100%;
-      padding: 48px 60px 32px;
+      padding: 48px 24px 32px;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 8px;
     }
+    /* Standaard (mobiel): onder elkaar, smal */
     .portaal-grid {
       width: 100%;
-      padding: 0 60px 60px;
+      max-width: 320px;
+      padding: 0 24px 48px;
       display: flex;
-      gap: 0;
+      flex-direction: column;
       flex: 1;
     }
     .portaal-kolom {
       display: flex;
       flex-direction: column;
       gap: 12px;
-      flex: 1;
     }
-    .portaal-kolom-links {
-      padding-right: 48px;
-    }
+    .portaal-kolom-links { padding-right: 0; }
     .portaal-kolom-rechts {
-      padding-left: 48px;
-      border-left: 1px solid var(--border);
+      padding-left: 0;
+      border-left: none;
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+      margin-top: 6px;
     }
-    .portaal-link {
-      font-size: 1.05rem;
-      padding: 16px 24px;
-    }
-    /* Mobiel: onder elkaar, gecentreerd */
-    @media (hover: none) and (pointer: coarse) {
-      .portaal-header { padding: 48px 24px 32px; align-items: center; }
-      .portaal-grid { flex-direction: column; padding: 0 24px 48px; }
-      .portaal-kolom-links { padding-right: 0; }
-      .portaal-kolom-rechts { padding-left: 0; border-left: none; border-top: 1px solid var(--border); padding-top: 16px; margin-top: 6px; }
-      .portaal-link { font-size: 1rem; padding: 14px 20px; }
+    /* PC: twee kolommen, vol scherm, gecentreerd */
+    @media (min-width: 768px) and (hover: hover) {
+      .portaal-header { padding: 48px 60px 32px; align-items: center; }
+      .portaal-grid { max-width: 100%; flex-direction: row; padding: 0 60px 60px; gap: 0; }
+      .portaal-kolom { flex: 1; }
+      .portaal-kolom-links { padding-right: 48px; }
+      .portaal-kolom-rechts { padding-left: 48px; padding-top: 0; margin-top: 0; border-top: none; border-left: 1px solid var(--border); }
+      .portaal-link { font-size: 1.05rem; padding: 16px 24px; }
     }
     .portaal-sectie-label {
       width: 100%;
@@ -395,70 +408,15 @@
 </head>
 <body>
 
-<!-- Tab knop: naar rooster (zichtbaar op portaal-pagina, staat rechts) -->
-<button class="tab-btn tab-rechts" id="tabNaarRooster" onclick="gaNaar('rooster')">Roosterwijzigingen</button>
-<!-- Tab knop: naar portaal (zichtbaar op rooster-pagina, staat links) -->
-<button class="tab-btn tab-links"  id="tabNaarPortaal" onclick="gaNaar('portaal')" style="display:none">Portaal</button>
+<!-- Tab knop: naar rooster -->
+<button class="tab-btn" id="tabNaarRooster" onclick="gaNaar('rooster')">Roosterwijzigingen</button>
+<!-- Tab knop: naar portaal -->
+<button class="tab-btn" id="tabNaarPortaal" onclick="gaNaar('portaal')" style="display:none">Portaal</button>
 
 <div class="slide-viewport">
 <div class="slide-wrapper" id="slideWrapper">
 
-  <!-- ── Slide 1: Portaal (links) ── -->
-  <div class="slide" id="slidePortaal">
-  <div class="page-content" style="width:100%;flex:1;display:flex;flex-direction:column">
-
-  <div class="portaal-header">
-    <div class="logo-title">Portaal</div>
-    <div class="logo-sub">Altena College</div>
-  </div>
-
-  <div class="portaal-grid">
-
-    <!-- Links: Leerlingen -->
-    <div class="portaal-kolom portaal-kolom-links">
-      <div class="portaal-sectie-label">Leerlingen</div>
-      <a class="portaal-link" href="https://som.today/" target="_blank" rel="noopener">
-        <span>Somtoday</span><span class="portaal-link-arrow">↗</span>
-      </a>
-      <a class="portaal-link" href="https://m365.cloud.microsoft/apps/" target="_blank" rel="noopener">
-        <span>Microsoft 365</span><span class="portaal-link-arrow">↗</span>
-      </a>
-      <a class="portaal-link" href="https://www.altenaengels.nl/" target="_blank" rel="noopener">
-        <span>AltenaEngels</span><span class="portaal-link-arrow">↗</span>
-      </a>
-      <a class="portaal-link" href="https://kwizl.eu/app/student#/" target="_blank" rel="noopener">
-        <span>Kwizl</span><span class="portaal-link-arrow">↗</span>
-      </a>
-      <a class="portaal-link" href="https://leerlingen.altenacollege.nl/" target="_blank" rel="noopener">
-        <span>Leerlingen Portaal</span><span class="portaal-link-arrow">↗</span>
-      </a>
-    </div>
-
-    <!-- Rechts: de rest -->
-    <div class="portaal-kolom portaal-kolom-rechts">
-      <div class="portaal-sectie-label">Personeel &amp; Ouders</div>
-      <a class="portaal-link" href="https://personeel.altenacollege.nl/" target="_blank" rel="noopener">
-        <span>Personeel Portaal</span><span class="portaal-link-arrow">↗</span>
-      </a>
-      <a class="portaal-link" href="https://ouder.altenacollege.nl/" target="_blank" rel="noopener">
-        <span>Ouder Portaal</span><span class="portaal-link-arrow">↗</span>
-      </a>
-      <div class="portaal-sectie-label" style="margin-top:8px">Sociaal</div>
-      <a class="portaal-link" href="https://www.facebook.com/altenacollegesleeuwijk/" target="_blank" rel="noopener">
-        <span>Facebook</span><span class="portaal-link-arrow">↗</span>
-      </a>
-      <a class="portaal-link" href="https://www.instagram.com/altenacollege/" target="_blank" rel="noopener">
-        <span>Instagram</span><span class="portaal-link-arrow">↗</span>
-      </a>
-    </div>
-
-  </div>
-
-  <footer>empowered by Joey Haks</footer>
-  </div>
-  </div><!-- /slidePortaal -->
-
-  <!-- ── Slide 2: Roosterwijzigingen (rechts) ── -->
+  <!-- ── Slide 1: Roosterwijzigingen (links) ── -->
   <div class="slide" id="slideRooster">
   <div class="page-content" style="width:100%">
 
@@ -516,12 +474,66 @@
   </div>
   </div><!-- /slideRooster -->
 
+  <!-- ── Slide 2: Portaal (rechts) ── -->
+  <div class="slide" id="slidePortaal">
+  <div class="page-content" style="width:100%;flex:1;display:flex;flex-direction:column">
+
+  <div class="portaal-header">
+    <div class="logo-title">Portaal</div>
+    <div class="logo-sub">Altena College</div>
+  </div>
+
+  <div class="portaal-grid">
+
+    <!-- Links: Leerlingen -->
+    <div class="portaal-kolom portaal-kolom-links">
+      <div class="portaal-sectie-label">Leerlingen</div>
+      <a class="portaal-link" href="https://som.today/" target="_blank" rel="noopener">
+        <span>Somtoday</span><span class="portaal-link-arrow">↗</span>
+      </a>
+      <a class="portaal-link" href="https://m365.cloud.microsoft/apps/" target="_blank" rel="noopener">
+        <span>Microsoft 365</span><span class="portaal-link-arrow">↗</span>
+      </a>
+      <a class="portaal-link" href="https://www.altenaengels.nl/" target="_blank" rel="noopener">
+        <span>AltenaEngels</span><span class="portaal-link-arrow">↗</span>
+      </a>
+      <a class="portaal-link" href="https://kwizl.eu/app/student#/" target="_blank" rel="noopener">
+        <span>Kwizl</span><span class="portaal-link-arrow">↗</span>
+      </a>
+      <a class="portaal-link" href="https://leerlingen.altenacollege.nl/" target="_blank" rel="noopener">
+        <span>Leerlingen Portaal</span><span class="portaal-link-arrow">↗</span>
+      </a>
+    </div>
+
+    <!-- Rechts: de rest -->
+    <div class="portaal-kolom portaal-kolom-rechts">
+      <div class="portaal-sectie-label">Personeel &amp; Ouders</div>
+      <a class="portaal-link" href="https://personeel.altenacollege.nl/" target="_blank" rel="noopener">
+        <span>Personeel Portaal</span><span class="portaal-link-arrow">↗</span>
+      </a>
+      <a class="portaal-link" href="https://ouder.altenacollege.nl/" target="_blank" rel="noopener">
+        <span>Ouder Portaal</span><span class="portaal-link-arrow">↗</span>
+      </a>
+      <div class="portaal-sectie-label" style="margin-top:8px">Sociaal</div>
+      <a class="portaal-link" href="https://www.facebook.com/altenacollegesleeuwijk/" target="_blank" rel="noopener">
+        <span>Facebook</span><span class="portaal-link-arrow">↗</span>
+      </a>
+      <a class="portaal-link" href="https://www.instagram.com/altenacollege/" target="_blank" rel="noopener">
+        <span>Instagram</span><span class="portaal-link-arrow">↗</span>
+      </a>
+    </div>
+
+  </div>
+
+  <footer>empowered by Joey Haks</footer>
+  </div>
+  </div><!-- /slidePortaal -->
+
 </div><!-- /slideWrapper -->
 </div><!-- /slideViewport -->
 
 <script>
-var isMobiel = window.matchMedia('(hover: none) and (pointer: coarse)').matches
-             || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+var isMobiel = window.innerWidth < 768;
 var cachedLinks  = null;
 var pdfCache     = {};
 var herlaadTimer = null;
@@ -899,25 +911,22 @@ function gaNaar(doel) {
   var wrapper    = document.getElementById('slideWrapper');
   var tabRooster = document.getElementById('tabNaarRooster');
   var tabPortaal = document.getElementById('tabNaarPortaal');
-
   if (doel === 'rooster') {
-    // Rooster is slide 2 (rechts) → schuif naar links (-50%)
     wrapper.classList.add('op-rooster');
     wrapper.classList.remove('op-portaal');
-    tabRooster.style.display = 'none';  // al op rooster, knop weg
-    tabPortaal.style.display = '';      // toon portaal-knop links
+    tabRooster.style.display = 'none';
+    tabPortaal.style.display = 'block';
   } else {
-    // Portaal is slide 1 (links) → geen transform
     wrapper.classList.remove('op-rooster');
     wrapper.classList.add('op-portaal');
-    tabPortaal.style.display = 'none';  // al op portaal, knop weg
-    tabRooster.style.display = '';      // toon rooster-knop rechts
+    tabPortaal.style.display = 'none';
+    tabRooster.style.display = 'block';
   }
   huidigSlide = doel;
 }
 
-// Startpagina: mobiel = rooster, PC = portaal
-gaNaar(isMobiel ? 'rooster' : 'portaal');
+var isSmallScreen = window.innerWidth < 768;
+gaNaar(isSmallScreen ? 'rooster' : 'portaal');
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </body>
