@@ -7,27 +7,22 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg:        #1a1a1a;
-      --surface:   #242424;
-      --border:    #2e2e2e;
-      --accent:    #e8634a;
-      --accent2:   #d45a72;
-      --text:      #e8e0d8;
-      --muted:     #6b6560;
+      --bg:      #1a1a1a;
+      --surface: #242424;
+      --border:  #2e2e2e;
+      --accent:  #e8634a;
+      --accent2: #d45a72;
+      --text:    #e8e0d8;
+      --muted:   #6b6560;
     }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { height: 100%; }
-
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body { height:100%; }
     body {
       background: var(--bg);
       color: var(--text);
       font-family: 'DM Sans', sans-serif;
       min-height: 100dvh;
-      overflow-y: auto;
-      overscroll-behavior: none;
     }
-
     .page-content {
       display: flex;
       flex-direction: column;
@@ -35,7 +30,6 @@
       min-height: 100dvh;
       width: 100%;
     }
-
     header {
       width: 100%;
       padding: 48px 24px 32px;
@@ -44,7 +38,6 @@
       align-items: center;
       gap: 8px;
     }
-
     .logo-title {
       font-family: 'Playfair Display', serif;
       font-size: clamp(2rem, 6vw, 3.2rem);
@@ -55,14 +48,12 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
-
     .logo-sub {
       font-size: 0.75rem;
       letter-spacing: 0.18em;
       text-transform: uppercase;
       color: var(--muted);
     }
-
     .dates {
       display: flex;
       flex-direction: column;
@@ -73,7 +64,6 @@
       max-width: 320px;
       padding: 0 24px;
     }
-
     .sectie-label {
       width: 100%;
       font-size: 0.7rem;
@@ -84,9 +74,7 @@
       border-bottom: 1px solid var(--border);
       margin-bottom: 2px;
     }
-
-    .sectie-spacer { width: 100%; margin-top: 8px; }
-
+    .sectie-spacer { width:100%; margin-top:8px; }
     .date-btn {
       width: 100%;
       padding: 14px 28px;
@@ -102,7 +90,6 @@
       position: relative;
       overflow: hidden;
     }
-
     .date-btn::before {
       content: '';
       position: absolute;
@@ -111,14 +98,12 @@
       opacity: 0;
       transition: opacity 0.18s ease;
     }
-
     .date-btn:hover::before,
     .date-btn.active::before { opacity: 0.12; }
+    .date-btn.active { border-color: var(--accent); }
+    .date-btn span { position: relative; z-index:1; }
 
-    .date-btn.active { border-color: var(--accent); color: var(--accent); }
-    .date-btn span { position: relative; z-index: 1; }
-
-    /* ── PDF hok ── */
+    /* PDF container PC */
     .pdf-container {
       display: none;
       width: calc(100% - 48px);
@@ -129,9 +114,7 @@
       overflow: hidden;
       background: var(--surface);
     }
-
     .pdf-container.visible { display: block; }
-
     .pdf-header {
       display: flex;
       align-items: center;
@@ -139,55 +122,88 @@
       padding: 14px 20px;
       border-bottom: 1px solid var(--border);
     }
-
     .pdf-label {
       font-size: 0.8rem;
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--accent);
     }
-
     .pdf-close {
       background: none;
       border: none;
       color: var(--muted);
       font-size: 1.2rem;
       cursor: pointer;
-      transition: color 0.15s;
       line-height: 1;
     }
     .pdf-close:hover { color: var(--accent); }
 
-    /* A4 verhouding — PDF past altijd volledig in het hok */
+    /* iframe hok — PC */
     .iframe-wrapper {
       width: 100%;
       aspect-ratio: 1 / 1.4142;
       position: relative;
       overflow: hidden;
-      background: #fff;
+      background: #1a1a1a;
     }
-
+    #glowCanvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 1;
+    }
     .iframe-wrapper iframe {
       position: absolute;
       top: 0; left: 0;
       width: calc(100% + 17px);
       height: calc(100% + 17px);
       border: none;
+      z-index: 2;
+      opacity: 0;
+      transition: opacity 0.5s ease;
     }
+    .iframe-wrapper iframe.geladen { opacity: 1; }
 
-    /* Mobiel: geen iframe maar een "open" knop */
-    .pdf-mobiel {
+    /* Mobiel hok */
+    .pdf-mobiel-container {
       display: none;
-      padding: 32px 24px;
+      width: calc(100% - 48px);
+      max-width: 700px;
+      margin: 32px 24px 48px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .pdf-mobiel-container.visible { display: block; }
+    .pdf-mobiel-body {
+      position: relative;
+      background: #1a1a1a;
+      min-height: 120px;
+    }
+    #glowCanvasMobiel {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+    }
+    .pdf-mobiel-laadbericht {
+      position: relative;
+      z-index: 2;
+      color: rgba(232,224,216,0.45);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
       text-align: center;
+      padding: 48px 24px;
     }
-
-    /* Op touch-apparaten: verberg iframe, toon knop */
-    @media (hover: none) and (pointer: coarse) {
-      .iframe-wrapper { display: none; }
-      .pdf-mobiel     { display: block; }
+    .pdf-mobiel-paginas {
+      position: relative;
+      z-index: 2;
     }
-
+    .pdf-mobiel-paginas canvas {
+      display: block;
+      width: 100% !important;
+      height: auto !important;
+    }
     footer {
       margin-top: auto;
       padding: 24px;
@@ -195,10 +211,202 @@
       color: var(--muted);
       text-align: center;
     }
+
+    /* Infobord ring wrapper */
+    .infobord-wrapper {
+      width: 100%;
+      position: relative;
+    }
+    .infobord-ring {
+      position: absolute;
+      inset: -5px;
+      border-radius: 15px;
+      pointer-events: none;
+      overflow: visible;
+    }
+    .infobord-ring rect {
+      fill: none;
+      stroke: url(#ringGrad);
+      stroke-width: 2.5;
+      rx: 13;
+      ry: 13;
+    }
+    @keyframes ringDash {
+      from { stroke-dashoffset: var(--ring-len); }
+      to   { stroke-dashoffset: 0; }
+    }
+  </style>
+  <style>
+    /* ── Slide systeem ─────────────────────────────────────────── */
+    body { overflow-x: hidden; }
+
+    .slide-wrapper {
+      display: flex;
+      width: 200vw;
+      min-height: 100dvh;
+      transition: transform 0.55s cubic-bezier(0.77,0,0.18,1);
+    }
+    .slide-wrapper.op-rooster  { transform: translateX(-50%); }
+    .slide-wrapper.op-portaal  { transform: translateX(0); }
+
+    .slide {
+      width: 50vw;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    /* ── Tab knoppen ───────────────────────────────────────────── */
+    .tab-btn {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 100;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      cursor: pointer;
+      padding: 36px 10px;
+      writing-mode: vertical-rl;
+      transition: color 0.2s, border-color 0.2s, background 0.2s;
+      -webkit-appearance: none;
+      appearance: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tab-btn:hover { color: var(--accent); border-color: var(--accent); }
+    .tab-btn.tab-rechts { right: 12px; text-orientation: mixed; transform: translateY(-50%) rotate(180deg); }
+    .tab-btn.tab-links  { left: 12px;  text-orientation: mixed; }
+
+    /* ── Portaal pagina ────────────────────────────────────────── */
+    .portaal-header {
+      width: 100%;
+      padding: 48px 24px 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .portaal-grid {
+      width: 100%;
+      max-width: 340px;
+      padding: 0 24px 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .portaal-sectie-label {
+      width: 100%;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--border);
+      margin-top: 8px;
+      margin-bottom: 2px;
+    }
+    .portaal-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 14px 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+      transition: border-color 0.18s, color 0.18s;
+      position: relative;
+      overflow: hidden;
+    }
+    .portaal-link::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      opacity: 0;
+      transition: opacity 0.18s ease;
+    }
+    .portaal-link:hover::before { opacity: 0.10; }
+    .portaal-link:hover { border-color: var(--accent); color: var(--accent); }
+    .portaal-link span { position: relative; z-index: 1; }
+    .portaal-link-arrow {
+      position: relative;
+      z-index: 1;
+      font-size: 0.8rem;
+      opacity: 0.4;
+      transition: opacity 0.18s, transform 0.18s;
+    }
+    .portaal-link:hover .portaal-link-arrow { opacity: 1; transform: translateX(3px); }
   </style>
 </head>
 <body>
-<div class="page-content">
+
+<!-- Tab knop: naar rooster (zichtbaar op portaal-pagina, staat rechts) -->
+<button class="tab-btn tab-rechts" id="tabNaarRooster" onclick="gaNaar('rooster')">Roosterwijzigingen</button>
+<!-- Tab knop: naar portaal (zichtbaar op rooster-pagina, staat links) -->
+<button class="tab-btn tab-links"  id="tabNaarPortaal" onclick="gaNaar('portaal')" style="display:none">Portaal</button>
+
+<div class="slide-wrapper" id="slideWrapper">
+
+  <!-- ── Slide 1: Portaal (links) ── -->
+  <div class="slide" id="slidePortaal">
+  <div class="page-content" style="width:100%">
+
+  <div class="portaal-header">
+    <div class="logo-title">Portaal</div>
+    <div class="logo-sub">Altena College</div>
+  </div>
+
+  <div class="portaal-grid">
+    <div class="portaal-sectie-label">Leerlingen</div>
+    <a class="portaal-link" href="https://som.today/" target="_blank" rel="noopener">
+      <span>Somtoday</span><span class="portaal-link-arrow">↗</span>
+    </a>
+    <a class="portaal-link" href="https://m365.cloud.microsoft/apps/" target="_blank" rel="noopener">
+      <span>Microsoft 365</span><span class="portaal-link-arrow">↗</span>
+    </a>
+    <a class="portaal-link" href="https://leerlingen.altenacollege.nl/" target="_blank" rel="noopener">
+      <span>Leerlingen Portaal</span><span class="portaal-link-arrow">↗</span>
+    </a>
+
+    <div class="portaal-sectie-label">Personeel &amp; Ouders</div>
+    <a class="portaal-link" href="https://personeel.altenacollege.nl/" target="_blank" rel="noopener">
+      <span>Personeel Portaal</span><span class="portaal-link-arrow">↗</span>
+    </a>
+    <a class="portaal-link" href="https://ouder.altenacollege.nl/" target="_blank" rel="noopener">
+      <span>Ouder Portaal</span><span class="portaal-link-arrow">↗</span>
+    </a>
+
+    <div class="portaal-sectie-label">Sociaal</div>
+    <a class="portaal-link" href="https://www.facebook.com/altenacollegesleeuwijk/" target="_blank" rel="noopener">
+      <span>Facebook</span><span class="portaal-link-arrow">↗</span>
+    </a>
+    <a class="portaal-link" href="https://www.instagram.com/altenacollege/" target="_blank" rel="noopener">
+      <span>Instagram</span><span class="portaal-link-arrow">↗</span>
+    </a>
+  </div>
+
+  <footer>empowered by Joey Haks</footer>
+  </div>
+  </div><!-- /slidePortaal -->
+
+  <!-- ── Slide 2: Roosterwijzigingen (rechts) ── -->
+  <div class="slide" id="slideRooster">
+  <div class="page-content" style="width:100%">
 
   <header>
     <div class="logo-title">Roosterwijzigingen</div>
@@ -209,193 +417,453 @@
     <div class="sectie-label">Roosterwijzigingen</div>
     <div class="sectie-spacer"></div>
     <div class="sectie-label">Informatie</div>
-    <button class="date-btn" id="infobordBtn" style="display:none" onclick="downloadInfobord()">
-      <span id="infobordLabel">Infobord</span>
-    </button>
+    <div class="infobord-wrapper" id="infobordWrapper" style="display:none">
+      <button class="date-btn" id="infobordBtn" onclick="downloadInfobord()">
+        <span id="infobordLabel">Infobord</span>
+      </button>
+      <svg class="infobord-ring" id="infobordRing" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="#e8634a"/>
+            <stop offset="100%" stop-color="#d45a72"/>
+          </linearGradient>
+        </defs>
+        <rect id="ringRect" rx="13" ry="13"/>
+      </svg>
+    </div>
   </div>
 
+  <!-- PC: iframe viewer -->
   <div class="pdf-container" id="pdfContainer">
     <div class="pdf-header">
       <span class="pdf-label" id="pdfLabel"></span>
-      <button class="pdf-close" onclick="closePdf()">✕</button>
+      <button class="pdf-close" onclick="closePdf()">&#x2715;</button>
     </div>
-    <!-- PC: iframe -->
     <div class="iframe-wrapper">
+      <canvas id="glowCanvas"></canvas>
       <iframe id="pdfFrame" title="Roosterwijziging PDF"></iframe>
     </div>
-    <!-- Mobiel: open in nieuw tabblad -->
-    <div class="pdf-mobiel">
-      <button id="pdfMobielBtn" onclick="openMobielPdf()" class="date-btn" style="width:auto; padding: 14px 40px;">Open</button>
+  </div>
+
+  <!-- Mobiel: PDF.js inline viewer -->
+  <div class="pdf-mobiel-container" id="pdfMobielContainer">
+    <div class="pdf-header">
+      <span class="pdf-label" id="pdfMobielLabel"></span>
+      <button class="pdf-close" onclick="closePdf()">&#x2715;</button>
+    </div>
+    <div class="pdf-mobiel-body" id="pdfViewerBody">
+      <canvas id="glowCanvasMobiel"></canvas>
+      <div class="pdf-mobiel-laadbericht" id="pdfStatus">Laden…</div>
+      <div class="pdf-mobiel-paginas" id="pdfPaginas"></div>
     </div>
   </div>
 
   <footer>empowered by Joey Haks</footer>
+  </div>
+  </div><!-- /slideRooster -->
 
-</div>
+</div><!-- /slideWrapper -->
 
 <script>
-  let cachedLinks  = null;
-  let pdfCache     = {};
-  let herlaadTimer = null;
-  let activePdfMap = null;
+var isMobiel = window.matchMedia('(hover: none) and (pointer: coarse)').matches
+             || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+var cachedLinks  = null;
+var pdfCache     = {};
+var herlaadTimer = null;
+var activePdfMap = null;
 
-  // ── Tijdschema ────────────────────────────────────────────────────
-  function intervalVoorNu() {
-    const nu  = new Date();
-    const min = nu.getHours() * 60 + nu.getMinutes();
-    if (min >= 7*60+30 && min < 8*60+30)  return 1  * 60 * 1000;
-    if (min >= 8*60+30 && min < 10*60+5)  return 10 * 60 * 1000;
-    if (min >= 10*60+5 && min < 18*60)    return 30 * 60 * 1000;
-    return null; // nacht
+// ── WebGL glow shader ─────────────────────────────────────────────
+var glowInstances = {};
+
+function startGlow(canvasId) {
+  if (glowInstances[canvasId]) return; // al actief, niet opnieuw starten
+  var canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  if (!gl) return;
+
+  var vertSrc = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.0,1.0);}';
+
+  var fragLines = [
+    'precision mediump float;',
+    'uniform float t;',
+    'uniform vec2 res;',
+    'void main(){',
+    '  vec2 uv=gl_FragCoord.xy/res;',
+    '  float x=uv.x,y=uv.y;',
+    '  float w1=sin(x*3.1+t*0.7+sin(y*2.4+t*0.5)*1.2)*0.5+0.5;',
+    '  float w2=sin(y*2.8-t*0.9+sin(x*3.6-t*0.6)*1.1)*0.5+0.5;',
+    '  float w3=sin((x+y)*2.5+t*0.8+sin(x*1.8+t*0.4)*0.9)*0.5+0.5;',
+    '  float w4=sin((x-y)*3.2-t*0.6+sin(y*2.1-t*0.7)*1.0)*0.5+0.5;',
+    '  float b=(w1*w2+w2*w3+w3*w4)/3.0;',
+    '  vec3 og=vec3(0.910,0.388,0.290);',
+    '  vec3 pk=vec3(0.831,0.353,0.447);',
+    '  vec3 dk=vec3(0.102,0.102,0.102);',
+    '  vec3 c=mix(dk,mix(og,pk,w2),pow(b,1.4)*0.85);',
+    '  gl_FragColor=vec4(c,1.0);',
+    '}'
+  ];
+  var fragSrc = fragLines.join('\n');
+
+  var vs = gl.createShader(gl.VERTEX_SHADER);
+  gl.shaderSource(vs, vertSrc);
+  gl.compileShader(vs);
+  var fs = gl.createShader(gl.FRAGMENT_SHADER);
+  gl.shaderSource(fs, fragSrc);
+  gl.compileShader(fs);
+  var prog = gl.createProgram();
+  gl.attachShader(prog, vs);
+  gl.attachShader(prog, fs);
+  gl.linkProgram(prog);
+  gl.useProgram(prog);
+
+  var buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+  var pLoc = gl.getAttribLocation(prog, 'p');
+  gl.enableVertexAttribArray(pLoc);
+  gl.vertexAttribPointer(pLoc, 2, gl.FLOAT, false, 0, 0);
+
+  var tLoc   = gl.getUniformLocation(prog, 't');
+  var resLoc = gl.getUniformLocation(prog, 'res');
+  var start  = performance.now();
+
+  function resize() {
+    canvas.width  = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    gl.viewport(0, 0, canvas.width, canvas.height);
   }
+  resize();
 
-  function planHerlaad() {
-    if (herlaadTimer) clearTimeout(herlaadTimer);
-    const interval = intervalVoorNu();
-    if (!interval) {
-      // Slaap tot 07:30
-      const nu  = new Date();
-      const min = nu.getHours() * 60 + nu.getMinutes();
-      let minTot730 = (7*60+30) - min;
-      if (minTot730 <= 0) minTot730 += 24 * 60;
-      herlaadTimer = setTimeout(function() { herlaadAlles(); planHerlaad(); }, minTot730 * 60 * 1000);
-      return;
+  function tick() {
+    var elapsed = (performance.now() - start) / 1000;
+    gl.uniform1f(tLoc, elapsed);
+    gl.uniform2f(resLoc, canvas.width || 1, canvas.height || 1);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    requestAnimationFrame(tick);
+  }
+  tick();
+  glowInstances[canvasId] = true;
+}
+
+// ── Tijdschema ────────────────────────────────────────────────────
+function intervalVoorNu() {
+  var nu  = new Date();
+  var min = nu.getHours() * 60 + nu.getMinutes();
+  if (min >= 7*60+30 && min < 8*60+30)  return 1  * 60 * 1000;
+  if (min >= 8*60+30 && min < 10*60+5)  return 10 * 60 * 1000;
+  if (min >= 10*60+5 && min < 18*60)    return 30 * 60 * 1000;
+  return null;
+}
+
+function planHerlaad() {
+  if (herlaadTimer) clearTimeout(herlaadTimer);
+  var interval = intervalVoorNu();
+  if (!interval) {
+    var nu      = new Date();
+    var min     = nu.getHours() * 60 + nu.getMinutes();
+    var tot730  = (7*60+30) - min;
+    if (tot730 <= 0) tot730 += 24 * 60;
+    herlaadTimer = setTimeout(function() { herlaadAlsNietActief(); planHerlaad(); }, tot730 * 60 * 1000);
+    return;
+  }
+  herlaadTimer = setTimeout(function() { herlaadAlsNietActief(); planHerlaad(); }, interval);
+}
+
+var gemistHerlaad = false;
+
+function herlaadAlsNietActief() {
+  if (document.hidden) {
+    herlaadAlles();
+  } else {
+    // Tabblad is actief — markeer als gemist, voer uit zodra gebruiker weggaat
+    gemistHerlaad = true;
+  }
+}
+
+async function herlaadAlles() {
+  gemistHerlaad = false;
+  await bouwKnoppen();
+  if (activePdfMap) await laadPdf(activePdfMap, false);
+}
+
+document.addEventListener('visibilitychange', function() {
+  if (document.hidden && gemistHerlaad) {
+    herlaadAlles();
+  }
+});
+
+// ── Links ─────────────────────────────────────────────────────────
+async function haalLinks(forceer) {
+  if (cachedLinks && !forceer) return cachedLinks;
+  var res = await fetch('/api/links');
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  cachedLinks = await res.json();
+  return cachedLinks;
+}
+
+async function bouwKnoppen() {
+  var container = document.getElementById('dates');
+  var spacer    = container.querySelector('.sectie-spacer');
+  container.querySelectorAll('.datum-btn').forEach(function(b) { b.remove(); });
+  try {
+    var links = await haalLinks(true);
+    ['vandaag', 'morgen'].forEach(function(map) {
+      var info = links[map];
+      if (!info) return;
+      var btn = document.createElement('button');
+      btn.className = 'date-btn datum-btn';
+      btn.setAttribute('data-map', map);
+      btn.setAttribute('data-label', info.label);
+      btn.onclick = function() { openPdf(this); };
+      btn.innerHTML = '<span>' + info.label + '</span>';
+      container.insertBefore(btn, spacer);
+    });
+    if (links.infobord) {
+      document.getElementById('infobordLabel').textContent = links.infobord.label || 'Infobord';
+      document.getElementById('infobordWrapper').style.display = '';
+      initRing();
     }
-    herlaadTimer = setTimeout(function() { herlaadAlles(); planHerlaad(); }, interval);
+  } catch(e) { console.error('bouwKnoppen:', e); }
+}
+
+// ── PDF laden ─────────────────────────────────────────────────────
+async function laadPdf(map, forceer) {
+  var el    = document.querySelector('.date-btn.datum-btn[data-map="' + map + '"]');
+  var label = el ? el.getAttribute('data-label') : map;
+
+  var cached  = pdfCache[map];
+  var headers = {};
+  if (cached && cached.etag && !forceer) headers['If-None-Match'] = cached.etag;
+
+  var res;
+  try { res = await fetch('/api/proxy?map=' + map, { headers }); }
+  catch(e) {
+    if (isMobiel) zetStatus('Kon PDF niet laden.');
+    return;
+  }
+  if (res.status === 304) {
+    if (map === activePdfMap && cached && cached.blobUrl) {
+      if (isMobiel) zetViewer(cached.blobUrl);
+      else          zetPcViewer(map);
+    }
+    return;
   }
 
-  async function herlaadAlles() {
-    await bouwKnoppen();
-    if (activePdfMap) await laadPdf(activePdfMap, false);
-  }
+  var etag = res.headers.get('ETag') || ('' + Date.now());
+  var blob = await res.blob();
+  var url  = URL.createObjectURL(blob);
 
-  // ── Links ─────────────────────────────────────────────────────────
-  async function haalLinks(forceer) {
-    if (cachedLinks && !forceer) return cachedLinks;
-    const res = await fetch('/api/links');
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    cachedLinks = await res.json();
-    return cachedLinks;
-  }
+  if (cached && cached.blobUrl) URL.revokeObjectURL(cached.blobUrl);
+  pdfCache[map] = { blobUrl: url, etag: etag, label: label };
 
-  async function bouwKnoppen() {
-    const container = document.getElementById('dates');
-    const spacer    = container.querySelector('.sectie-spacer');
-    container.querySelectorAll('.datum-btn').forEach(b => b.remove());
-    try {
-      const links = await haalLinks(true);
-      ['vandaag', 'morgen'].forEach(function(map) {
-        const info = links[map];
-        if (!info) return;
-        const btn = document.createElement('button');
-        btn.className = 'date-btn datum-btn';
-        btn.setAttribute('data-map', map);
-        btn.setAttribute('data-label', info.label);
-        btn.onclick = function() { openPdf(this); };
-        btn.innerHTML = '<span>' + info.label + '</span>';
-        container.insertBefore(btn, spacer);
-      });
-      if (links.infobord) {
-        document.getElementById('infobordLabel').textContent = links.infobord.label || 'Infobord';
-        document.getElementById('infobordBtn').style.display = '';
+  if (map === activePdfMap) {
+    if (isMobiel) zetViewer(url);
+    else          zetPcViewer(map);
+  }
+}
+
+function zetPcViewer(map) {
+  var cached = pdfCache[map];
+  if (!cached || !cached.blobUrl) return;
+  var frame = document.getElementById('pdfFrame');
+  frame.classList.remove('geladen');
+  frame.src = '';
+  setTimeout(function() {
+    frame.src = cached.blobUrl + '#toolbar=0&navpanes=0&scrollbar=0&view=Fit&pagemode=none';
+    setTimeout(function() { frame.classList.add('geladen'); }, 2000);
+  }, 50);
+}
+
+function zetStatus(tekst) {
+  var s = document.getElementById('pdfStatus');
+  if (s) { s.textContent = tekst; s.style.display = ''; }
+}
+
+function zetViewer(blobUrl) {
+  var status  = document.getElementById('pdfStatus');
+  var paginas = document.getElementById('pdfPaginas');
+  var container = document.getElementById('pdfMobielContainer');
+  if (!paginas) return;
+
+  if (!window.pdfjsLib) { zetStatus('PDF.js niet beschikbaar.'); return; }
+
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  pdfjsLib.getDocument({ url: blobUrl, disableStream: true })
+    .promise.then(function(pdf) {
+      if (status) status.style.display = 'none';
+      paginas.innerHTML = '';
+      var eersteGescrolld = false;
+      var chain = Promise.resolve();
+      for (var i = 1; i <= pdf.numPages; i++) {
+        (function(n) {
+          chain = chain.then(function() {
+            return pdf.getPage(n).then(function(page) {
+              var breedte = paginas.offsetWidth || 320;
+              var schaal  = breedte / page.getViewport({ scale: 1 }).width;
+              var vp = page.getViewport({ scale: schaal * (window.devicePixelRatio || 1) });
+              var c  = document.createElement('canvas');
+              c.width  = vp.width;
+              c.height = vp.height;
+              return page.render({ canvasContext: c.getContext('2d'), viewport: vp })
+                .promise.then(function() {
+                  paginas.appendChild(c);
+                  // Na eerste pagina: scroll zodat container in het midden staat
+                  if (!eersteGescrolld && container) {
+                    eersteGescrolld = true;
+                    setTimeout(function() {
+                      container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 50);
+                  }
+                });
+            });
+          });
+        })(i);
       }
-    } catch(e) {}
-  }
+      return chain;
+    })
+    .catch(function(e) { zetStatus('Fout: ' + e.message); });
+}
 
-  // ── PDF laden met ETag ────────────────────────────────────────────
-  async function laadPdf(map, forceer) {
-    const cached  = pdfCache[map];
-    const headers = {};
-    if (cached && !forceer) headers['If-None-Match'] = cached.etag;
+function openPdf(btn) {
+  document.querySelectorAll('.date-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
 
-    let res;
-    try { res = await fetch('/api/proxy?map=' + map, { headers }); }
-    catch(e) { return; }
+  var map   = btn.getAttribute('data-map');
+  var label = btn.getAttribute('data-label');
+  activePdfMap = map;
 
-    if (res.status === 304) return; // niet veranderd
-
-    const etag = res.headers.get('ETag') || ('' + Date.now());
-    const blob = await res.blob();
-    const url  = URL.createObjectURL(blob);
-
-    if (cached && cached.blobUrl) URL.revokeObjectURL(cached.blobUrl);
-    pdfCache[map] = { blobUrl: url, etag, proxyUrl: '/api/proxy?map=' + map, label: document.querySelector('.date-btn.datum-btn[data-map="' + map + '"]')?.getAttribute('data-label') || map };
-
-    if (map === activePdfMap) zetPdfInViewer(map);
-  }
-
-  // Zet "vr 13 mar" om naar "13-03-2026.pdf"
-  function labelNaarBestandsnaam(label) {
-    var MAANDEN = { jan:'01', feb:'02', mar:'03', apr:'04', mei:'05', jun:'06',
-                    jul:'07', aug:'08', sep:'09', okt:'10', nov:'11', dec:'12' };
-    var delen = label.trim().toLowerCase().split(/\s+/); // ["vr","13","mar"]
-    if (delen.length >= 3) {
-      var dag  = delen[1].padStart(2, '0');
-      var mnd  = MAANDEN[delen[2]] || '00';
-      var jaar = new Date().getFullYear();
-      // Als de maand al voorbij is, dan volgend jaar
-      var nu = new Date();
-      if (parseInt(mnd) < nu.getMonth() + 1) jaar++;
-      return dag + '-' + mnd + '-' + jaar + '.pdf';
-    }
-    return label + '.pdf';
-  }
-
-  function zetPdfInViewer(map) {
-    const cached = pdfCache[map];
-    if (!cached) return;
-
-    // PC: blob in iframe, view=Fit zodat hele pagina past
-    document.getElementById('pdfFrame').src =
-      cached.blobUrl + '#toolbar=0&navpanes=0&scrollbar=0&view=Fit&pagemode=none';
-
-    // Mobiel: directe link in nieuw tabblad met datum als tekst
-    // Label is bijv. "vr 13 mar" — omzetten naar "13-03-2026" voor bestandsnaam
-    // mobiele knop hoeft niks te updaten — openMobielPdf() pakt activePdfMap
-  }
-
-  function openPdf(btn) {
-    document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-
-    const map   = btn.getAttribute('data-map');
-    const label = btn.getAttribute('data-label');
-    activePdfMap = map;
-
+  if (isMobiel) {
+    document.getElementById('pdfMobielLabel').textContent = label;
+    document.getElementById('pdfMobielContainer').classList.add('visible');
+    document.getElementById('pdfContainer').classList.remove('visible');
+    document.getElementById('pdfPaginas').innerHTML = '';
+    zetStatus('Laden…');
+    document.getElementById('pdfStatus').style.display = '';
+    startGlow('glowCanvasMobiel', null);
+  } else {
     document.getElementById('pdfLabel').textContent = label;
     document.getElementById('pdfContainer').classList.add('visible');
+    document.getElementById('pdfMobielContainer').classList.remove('visible');
     document.getElementById('pdfContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-    if (pdfCache[map]) {
-      zetPdfInViewer(map);
-      laadPdf(map, false); // stille check op wijziging
-    } else {
-      laadPdf(map, true);
-    }
+    startGlow('glowCanvas', null);
   }
 
-  function openMobielPdf() {
-    if (activePdfMap) window.open('/api/proxy?map=' + activePdfMap, '_blank');
+  if (pdfCache[map] && pdfCache[map].blobUrl) {
+    if (isMobiel) zetViewer(pdfCache[map].blobUrl);
+    else          zetPcViewer(map);
+    laadPdf(map, false);
+  } else {
+    laadPdf(map, true);
   }
+}
 
-  function closePdf() {
-    activePdfMap = null;
-    document.getElementById('pdfContainer').classList.remove('visible');
-    document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('pdfFrame').src = '';
+function closePdf() {
+  activePdfMap = null;
+  document.getElementById('pdfContainer').classList.remove('visible');
+  document.getElementById('pdfMobielContainer').classList.remove('visible');
+  document.getElementById('pdfPaginas').innerHTML = '';
+  document.querySelectorAll('.date-btn').forEach(function(b) { b.classList.remove('active'); });
+  var frame = document.getElementById('pdfFrame');
+  frame.classList.remove('geladen');
+  frame.src = '';
+}
+
+function initRing() {
+  var btn  = document.getElementById('infobordBtn');
+  var svg  = document.getElementById('infobordRing');
+  var rect = document.getElementById('ringRect');
+  if (!btn || !svg || !rect) return;
+
+  function sizeRing() {
+    var w = btn.offsetWidth  + 10;
+    var h = btn.offsetHeight + 10;
+    svg.setAttribute('width',  w);
+    svg.setAttribute('height', h);
+    rect.setAttribute('width',  w);
+    rect.setAttribute('height', h);
+    rect.setAttribute('x', 0);
+    rect.setAttribute('y', 0);
+    var perimeter = 2 * (w + h);
+    rect.style.strokeDasharray  = perimeter;
+    rect.style.strokeDashoffset = perimeter;
+    svg.style.setProperty('--ring-len', perimeter);
+    return perimeter;
   }
+  sizeRing();
 
-  function downloadInfobord() {
-    const a = document.createElement('a');
+  var ringActive = false;
+  btn._startRing = function(duur) {
+    if (ringActive) return;
+    ringActive = true;
+    var perimeter = sizeRing();
+    rect.style.transition = 'none';
+    rect.style.strokeDashoffset = perimeter;
+    rect.style.stroke = 'url(#ringGrad)';
+    rect.style.strokeWidth = '2.5';
+    rect.style.opacity = '1';
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        rect.style.transition = 'stroke-dashoffset ' + (duur / 1000).toFixed(2) + 's cubic-bezier(0.4,0,0.2,1)';
+        rect.style.strokeDashoffset = '0';
+      });
+    });
+    setTimeout(function() {
+      rect.style.transition = 'opacity 0.4s ease';
+      rect.style.opacity = '0';
+      setTimeout(function() {
+        rect.style.strokeDashoffset = perimeter;
+        rect.style.opacity = '1';
+        ringActive = false;
+      }, 420);
+    }, duur + 100);
+  };
+}
+
+function downloadInfobord() {
+  var btn = document.getElementById('infobordBtn');
+  if (btn && btn._startRing) btn._startRing(2300);
+  setTimeout(function() {
+    var a = document.createElement('a');
     a.href = '/api/proxy?bestand=infobord';
-    a.download = 'infobord.pptx';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-  }
+  }, 2600);
+}
 
-  bouwKnoppen();
-  planHerlaad();
+bouwKnoppen();
+planHerlaad();
+
+// ── Slide navigatie ───────────────────────────────────────────────
+var huidigSlide = null;
+
+function gaNaar(doel) {
+  var wrapper    = document.getElementById('slideWrapper');
+  var tabRooster = document.getElementById('tabNaarRooster');
+  var tabPortaal = document.getElementById('tabNaarPortaal');
+
+  if (doel === 'rooster') {
+    // Rooster is slide 2 (rechts) → schuif naar links (-50%)
+    wrapper.classList.add('op-rooster');
+    wrapper.classList.remove('op-portaal');
+    tabRooster.style.display = 'none';  // al op rooster, knop weg
+    tabPortaal.style.display = '';      // toon portaal-knop links
+  } else {
+    // Portaal is slide 1 (links) → geen transform
+    wrapper.classList.remove('op-rooster');
+    wrapper.classList.add('op-portaal');
+    tabPortaal.style.display = 'none';  // al op portaal, knop weg
+    tabRooster.style.display = '';      // toon rooster-knop rechts
+  }
+  huidigSlide = doel;
+}
+
+// Startpagina: mobiel = rooster, PC = portaal
+gaNaar(isMobiel ? 'rooster' : 'portaal');
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </body>
 </html>
