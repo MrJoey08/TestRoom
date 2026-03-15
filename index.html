@@ -384,14 +384,14 @@
 
     .slide-viewport {
       width: 100vw;
-      overflow: hidden;
+      overflow-x: hidden;
+      overflow-y: visible;
       position: relative;
     }
 
     .slide-wrapper {
       display: flex;
       width: 200vw;
-      height: 100dvh;
       transition: transform 0.55s cubic-bezier(0.77,0,0.18,1);
     }
     /* Mobiel: row normaal — rooster(slide1)=links=0, portaal(slide2)=rechts=-50% */
@@ -954,11 +954,9 @@ function openPdf(btn) {
   document.querySelectorAll('.date-btn').forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
 
-  if (isMobiel) {
-    var sr = document.getElementById('slideRooster');
-    sr.style.overflow = 'auto';
-    sr.style.height = 'auto';
-  }
+  var sr = document.getElementById('slideRooster');
+  sr.style.overflow = 'auto';
+  sr.style.height = 'auto';
 
 
   var map   = btn.getAttribute('data-map');
