@@ -918,6 +918,7 @@ function zetViewer(blobUrl) {
     .promise.then(function(pdf) {
       if (status) status.style.display = 'none';
       paginas.innerHTML = '';
+      var eersteGescrolld = false;
       var chain = Promise.resolve();
       for (var i = 1; i <= pdf.numPages; i++) {
         (function(n) {
@@ -932,19 +933,34 @@ function zetViewer(blobUrl) {
               return page.render({ canvasContext: c.getContext('2d'), viewport: vp })
                 .promise.then(function() {
                   paginas.appendChild(c);
+                  // Na eerste pagina renderen: wacht tot layout klaar is, scroll dan naar container
+                  if (!eersteGescrolld && container) {
+                    eersteGescrolld = true;
+                    // Gebruik requestAnimationFrame zodat de browser de layout heeft berekend
+                    requestAnimationFrame(function() {
+                      requestAnimationFrame(function() {
+                        var rect = container.getBoundingClientRect();
+                        var scrollEl = document.getElementById('slideRooster');
+                        if (scrollEl && scrollEl.scrollHeight > scrollEl.clientHeight) {
+                          // slideRooster is scrollbaar (overflow: auto gezet door openPdf)
+                          var containerTop = container.offsetTop;
+                          var centerOffset = containerTop - (scrollEl.clientHeight / 2) + (container.offsetHeight / 2);
+                          scrollEl.scrollTo({ top: Math.max(0, centerOffset), behavior: 'smooth' });
+                        } else {
+                          // Fallback: scroll window
+                          var absTop = window.pageYOffset + rect.top;
+                          var center = absTop - (window.innerHeight / 2) + (rect.height / 2);
+                          window.scrollTo({ top: Math.max(0, center), behavior: 'smooth' });
+                        }
+                      });
+                    });
+                  }
                 });
             });
           });
         })(i);
       }
-      // Scroll naar container pas nadat ALLE pagina's geladen zijn
-      return chain.then(function() {
-        if (container) {
-          setTimeout(function() {
-            container.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }, 100);
-        }
-      });
+      return chain;
     })
     .catch(function(e) { zetStatus('Fout: ' + e.message); });
 }
