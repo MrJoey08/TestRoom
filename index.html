@@ -975,15 +975,15 @@ function openPdf(btn) {
 
 function closePdf() {
   activePdfMap = null;
-  updateScroll();
   document.getElementById('pdfContainer').classList.remove('visible');
   document.getElementById('pdfMobielContainer').classList.remove('visible');
   document.getElementById('pdfPaginas').innerHTML = '';
   document.querySelectorAll('.date-btn').forEach(function(b) { b.classList.remove('active'); });
-
   var frame = document.getElementById('pdfFrame');
   frame.classList.remove('geladen');
   frame.src = '';
+  window.scrollTo(0, 0);
+  updateScroll();
 }
 
 function initRing() {
@@ -1153,13 +1153,9 @@ var huidigSlide = null;
   // Scroll beheer
   function updateScroll() {
     var mobiel = window.innerWidth < 768;
-    if (!mobiel) {
-      document.body.style.overflowY = 'hidden';
-      return;
-    }
     var opPortaal = huidigSlide === 'portaal';
     var pdfOpen = !!activePdfMap;
-    if (opPortaal || pdfOpen) {
+    if (pdfOpen || (mobiel && opPortaal)) {
       document.body.style.overflowY = '';
     } else {
       document.body.style.overflowY = 'hidden';
