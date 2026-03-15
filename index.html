@@ -75,6 +75,15 @@
     .logo-title-wrap {
       position: relative;
     }
+    #roosterContent {
+      height: 100dvh;
+      overflow: hidden;
+    }
+    #roosterContent:has(.pdf-container.visible),
+    #roosterContent:has(.pdf-mobiel-container.visible) {
+      height: auto;
+      overflow: visible;
+    }
     .logo-icon {
       position: absolute;
       height: clamp(3rem, 9vw, 4.8rem);
@@ -382,6 +391,7 @@
     .slide-wrapper {
       display: flex;
       width: 200vw;
+      height: 100dvh;
       transition: transform 0.55s cubic-bezier(0.77,0,0.18,1);
     }
     /* Mobiel: row normaal — rooster(slide1)=links=0, portaal(slide2)=rechts=-50% */
@@ -397,12 +407,15 @@
 
     .slide {
       width: 100vw;
-      min-height: 100dvh;
+      height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
       flex-shrink: 0;
-      overflow-x: hidden;
+      overflow: hidden;
+    }
+    #slidePortaal {
+      overflow-y: auto;
     }
 
     /* ── Tab knoppen ───────────────────────────────────────────── */
@@ -546,7 +559,7 @@
 
   <!-- ── Slide 1: Roosterwijzigingen (links) ── -->
   <div class="slide" id="slideRooster">
-  <div class="page-content" style="width:100%">
+  <div class="page-content" id="roosterContent" style="width:100%">
 
   <header>
     <div class="logo-title-wrap"><img class="logo-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMTAgMzQwIj4KPHBhdGggZD0iTTE0MC4wNSwzMDkuNzdBMjA5LjcsMjA5LjcsMCwwLDEsNjIuMzIsMjY1Yy0zMC0yNy4xNS00OC42OC01OS4zOS01NC44NS05MC0xLjg2LDM3Ljc0LDE4LDgxLjYzLDU3LDExNi45Myw1Ni4xNCw1MC43NSwxMzIuNzksNjYuMzcsMTgwLjg3LDM5LjU3QzIxMywzMzYuNTIsMTc1LjEyLDMyOC44NSwxNDAuMDUsMzA5Ljc3WiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTUuMiAtNS4wOSkiIHN0eWxlPSJmaWxsOiNlODYzNGEiLz48cGF0aCBkPSJNODMuNTIsOTUuNDRDMTExLjQ2LDc5Ljg3LDE0OSw3OC42MiwxODYuNjUsOTAuMjcsMTMxLjIsNjAuMSw2OC41OCw1OC40MSwzMi4zLDkwLjI5LDguNjIsMTExLjEuODUsMTQyLjEyLDcuNDcsMTc1YzEuMTItMjIuNDksOS45NC00Mi44LDI3LTU3LjhDNDcuODIsMTA1LjUsNjQuNzMsOTguMzUsODMuNTIsOTUuNDRaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNS4yIC01LjA5KSIgc3R5bGU9ImZpbGw6I2U4NjM0YSIvPjxwYXRoIGQ9Ik0xNDAuMDUsMzA5Ljc3YTIxNS4wNiwyMTUuMDYsMCwwLDEtNDEuMjYtMjkuMjVDNzcuMzcsMjYxLjE1LDYxLjczLDIzOS4yLDUyLjI4LDIxNy4xYy0xOC00Mi4xOS0xMy41MS04NC45NSwxNi40OS0xMTEuMzFBODQuNjUsODQuNjUsMCwwLDEsODMuNTIsOTUuNDRjLTE4Ljc5LDIuOTEtMzUuNywxMC4wNi00OSwyMS43OC0xNy4wNywxNS0yNS44OSwzNS4zMS0yNyw1Ny44LDYuMTcsMzAuNjEsMjQuODEsNjIuODUsNTQuODUsOTBBMjA5LjcsMjA5LjcsMCwwLDAsMTQwLjA1LDMwOS43N1oiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC01LjIgLTUuMDkpIiBzdHlsZT0iZmlsbDojYjg1NTNlIi8+PHBhdGggZD0iTTU4LjgyLDIwMS41NmExNzguMTQsMTc4LjE0LDAsMCwxLDguMTItNDkuMDdjMTUuNTktNDkuNzUsNTAuNDItODYuNCw5MC41NS0xMDEuMjZDMTg4LDMxLDIyNC4zNywyNC4yOCwyNTguNjgsMzZhMTA4LjczLDEwOC43MywwLDAsMSwxOC42NSw4LjQ0LDExMi40LDExMi40LDAsMCwwLTQ4Ljk1LTMzLjU5Yy02Ni4yNS0yMi42Mi0xNDAuMTEsMjMuNC0xNjUsMTAyLjgxQTE3My40OSwxNzMuNDksMCwwLDAsNTguODIsMjAxLjU2WiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTUuMiAtNS4wOSkiIHN0eWxlPSJmaWxsOiNjNDRkNjMiLz48cGF0aCBkPSJNMTU3LjQ5LDUxLjIzYzIzLjkxLTguODYsNDkuNzEtMTAsNzQuNDQtMS41NCw0MS4yNSwxNC4wOSw2OS44LDUxLjQ2LDc5LjQ4LDk2LjgzLjkzLTM5LjE3LTExLjUxLTc1Ljg1LTM0LjA4LTEwMi4wOEExMDguNzMsMTA4LjczLDAsMCwwLDI1OC42OCwzNkMyMjQuMzcsMjQuMjgsMTg4LDMxLDE1Ny40OSw1MS4yM1oiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC01LjIgLTUuMDkpIiBzdHlsZT0iZmlsbDojYjg1NTNlIi8+PHBhdGggZD0iTTE0Ni40NCwzMTNBMTE2LjM3LDExNi4zNywwLDAsMSwxMTkuNjQsMjkwYy0zMS44Ni0zNy00My41Ny05NC45MS0yNS45NS0xNTEuMTYsMTItMzguMjcsMzUuMzgtNjguNzYsNjMuOC04Ny41Ny00MC4xMywxNC44Ni03NSw1MS41MS05MC41NSwxMDEuMjZhMTc4LjE0LDE3OC4xNCwwLDAsMC04LjEyLDQ5LjA3Yy0xLjQ2LDYxLjk0LDMxLjk0LDExNyw4NC41LDEzNC45MkMxNDMuMzIsMzM2LjQ4LDE1My4zNCwzMTcuMzIsMTQ2LjQ0LDMxM1oiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC01LjIgLTUuMDkpIiBzdHlsZT0iZmlsbDojZjA5MjZhIi8+PHBhdGggZD0iTTE0MC4wNSwzMDkuNzdBMjA5LjcsMjA5LjcsMCwwLDEsNjIuMzIsMjY1Yy0zMC0yNy4xNS00OC42OC01OS4zOS01NC44NS05MC0xLjg2LDM3Ljc0LDE4LDgxLjYzLDU3LDExNi45Myw1Ni4xNCw1MC43NSwxMzIuNzksNjYuMzcsMTgwLjg3LDM5LjU3QzIxMywzMzYuNTIsMTc1LjEyLDMyOC44NSwxNDAuMDUsMzA5Ljc3WiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTUuMiAtNS4wOSkiIHN0eWxlPSJmaWxsOiNkNDVhNzIiLz48cGF0aCBkPSJNNy40NywxNzVjNi4xNywzMC42MSwyNC44MSw2Mi44NSw1NC44NSw5MGEyMDkuNywyMDkuNywwLDAsMCw3Ny43Myw0NC43NSwyMTUuMDYsMjE1LjA2LDAsMCwxLTQxLjI2LTI5LjI1Qzc3LjM3LDI2MS4xNSw2MS43MywyMzkuMiw1Mi4yOCwyMTcuMSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTUuMiAtNS4wOSkiIHN0eWxlPSJmaWxsOiNiODU1M2UiLz4KPC9zdmc+" alt=""><div class="logo-title">Roosterwijzigingen</div></div>
@@ -941,6 +954,8 @@ function openPdf(btn) {
   document.querySelectorAll('.date-btn').forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
 
+  document.getElementById('slideRooster').style.overflow = 'auto';
+
 
   var map   = btn.getAttribute('data-map');
   var label = btn.getAttribute('data-label');
@@ -962,7 +977,6 @@ function openPdf(btn) {
     startGlow('glowCanvas', null);
   }
 
-  updateScroll();
 
   if (pdfCache[map] && pdfCache[map].blobUrl) {
     if (isMobiel) zetViewer(pdfCache[map].blobUrl);
@@ -981,9 +995,10 @@ function closePdf() {
   var frame = document.getElementById('pdfFrame');
   frame.classList.remove('geladen');
   frame.src = '';
-  window.scrollTo({ top: 0, behavior: 'instant' });
+  var sr = document.getElementById('slideRooster');
+  sr.scrollTo(0, 0);
+  sr.style.overflow = 'hidden';
   activePdfMap = null;
-  setTimeout(updateScroll, 50);
 }
 
 function initRing() {
@@ -1150,17 +1165,6 @@ planHerlaad();
 var huidigSlide = null;
 
 
-  // Scroll beheer
-  function updateScroll() {
-    var mobiel = window.innerWidth < 768;
-    var opPortaal = huidigSlide === 'portaal';
-    var pdfOpen = !!activePdfMap;
-    if (pdfOpen || (mobiel && opPortaal)) {
-      document.body.style.overflowY = '';
-    } else {
-      document.body.style.overflowY = 'hidden';
-    }
-  }
 
 function gaNaar(doel) {
   var wrapper    = document.getElementById('slideWrapper');
@@ -1178,7 +1182,6 @@ function gaNaar(doel) {
     tabRooster.style.display = 'block';
   }
   huidigSlide = doel;
-  updateScroll();
 }
 
 var isSmallScreen = window.innerWidth < 768;
