@@ -79,8 +79,7 @@
       height: 100dvh;
       overflow: hidden;
     }
-    #roosterContent:has(.pdf-container.visible),
-    #roosterContent:has(.pdf-mobiel-container.visible) {
+    #roosterContent:has(.pdf-container.visible) {
       height: auto;
       overflow: visible;
     }
@@ -216,6 +215,23 @@
       overflow: hidden;
     }
     .pdf-mobiel-container.visible { display: block; }
+    .pdf-mobiel-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      background: var(--bg);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .pdf-mobiel-overlay.open { display: flex; flex-direction: column; }
+    .pdf-mobiel-overlay .pdf-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
     .pdf-mobiel-body {
       position: relative;
       background: #1a1a1a;
@@ -598,18 +614,7 @@
     </div>
   </div>
 
-  <!-- Mobiel: PDF.js inline viewer -->
-  <div class="pdf-mobiel-container" id="pdfMobielContainer">
-    <div class="pdf-header">
-      <span class="pdf-label" id="pdfMobielLabel"></span>
-      <button class="pdf-close" onclick="closePdf()">&#x2715;</button>
-    </div>
-    <div class="pdf-mobiel-body" id="pdfViewerBody">
-      <canvas id="glowCanvasMobiel"></canvas>
-      <div class="pdf-mobiel-laadbericht" id="pdfStatus">Laden…</div>
-      <div class="pdf-mobiel-paginas" id="pdfPaginas"></div>
-    </div>
-  </div>
+  <!-- Mobiel PDF: wordt getoond in overlay -->
 
   <footer>Empowered by Joey Haks <button class="feedback-btn" onclick="openFeedback()" title="Feedback versturen"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Feedback</button></footer>
   </div>
@@ -672,6 +677,19 @@
 
 </div><!-- /slideWrapper -->
 </div><!-- /slideViewport -->
+
+<!-- Mobiel PDF overlay (buiten slide systeem) -->
+<div class="pdf-mobiel-overlay" id="pdfMobielOverlay">
+  <div class="pdf-header">
+    <span class="pdf-label" id="pdfMobielLabel"></span>
+    <button class="pdf-close" onclick="closePdf()">&#x2715;</button>
+  </div>
+  <div class="pdf-mobiel-body" id="pdfViewerBody">
+    <canvas id="glowCanvasMobiel"></canvas>
+    <div class="pdf-mobiel-laadbericht" id="pdfStatus">Laden…</div>
+    <div class="pdf-mobiel-paginas" id="pdfPaginas"></div>
+  </div>
+</div>
 
 <!-- Feedback modal -->
 <div class="feedback-overlay" id="feedbackOverlay" onclick="if(event.target===this)closeFeedback()">
@@ -906,7 +924,7 @@ function zetStatus(tekst) {
 function zetViewer(blobUrl) {
   var status  = document.getElementById('pdfStatus');
   var paginas = document.getElementById('pdfPaginas');
-  var container = document.getElementById('pdfMobielContainer');
+  var container = document.getElementById('pdfMobielOverlay');
   if (!paginas) return;
 
   if (!window.pdfjsLib) { zetStatus('PDF.js niet beschikbaar.'); return; }
@@ -938,9 +956,7 @@ function zetViewer(blobUrl) {
           });
         })(i);
       }
-      return chain.then(function() {
-        window._pdfKlaar = true;
-      });
+      return chain;
     })
     .catch(function(e) { zetStatus('Fout: ' + e.message); });
 }
@@ -954,27 +970,15 @@ function openPdf(btn) {
   activePdfMap = map;
 
   if (isMobiel) {
-    document.getElementById('slideRooster').style.height = 'auto';
-    document.getElementById('slideRooster').style.overflow = 'visible';
-    document.querySelector('.slide-viewport').style.overflow = 'visible';
     document.getElementById('pdfMobielLabel').textContent = label;
-    document.getElementById('pdfMobielContainer').classList.add('visible');
-    document.getElementById('pdfContainer').classList.remove('visible');
+    document.getElementById('pdfMobielOverlay').classList.add('open');
     document.getElementById('pdfPaginas').innerHTML = '';
     zetStatus('Laden…');
     document.getElementById('pdfStatus').style.display = '';
     startGlow('glowCanvasMobiel', null);
-    window._pdfKlaar = false;
-    var wacht = setInterval(function() {
-      if (window._pdfKlaar) {
-        clearInterval(wacht);
-        document.getElementById('pdfMobielContainer').scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }, 100);
   } else {
     document.getElementById('pdfLabel').textContent = label;
     document.getElementById('pdfContainer').classList.add('visible');
-    document.getElementById('pdfMobielContainer').classList.remove('visible');
     document.getElementById('pdfContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
     startGlow('glowCanvas', null);
   }
@@ -991,18 +995,12 @@ function openPdf(btn) {
 
 function closePdf() {
   document.getElementById('pdfContainer').classList.remove('visible');
-  document.getElementById('pdfMobielContainer').classList.remove('visible');
+  document.getElementById('pdfMobielOverlay').classList.remove('open');
   document.getElementById('pdfPaginas').innerHTML = '';
   document.querySelectorAll('.date-btn').forEach(function(b) { b.classList.remove('active'); });
   var frame = document.getElementById('pdfFrame');
   frame.classList.remove('geladen');
   frame.src = '';
-  var sr = document.getElementById('slideRooster');
-  sr.scrollTo(0, 0);
-  document.querySelector('.slide-viewport').scrollTo(0, 0);
-  document.querySelector('.slide-viewport').style.overflow = '';
-  sr.style.overflow = '';
-  sr.style.height = '';
   activePdfMap = null;
 }
 
