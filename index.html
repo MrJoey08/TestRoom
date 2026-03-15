@@ -925,7 +925,7 @@ function zetViewer(blobUrl) {
                     eersteGescrolld = true;
                     setTimeout(function() {
                       container.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 50);
+                    }, 200);
                   }
                 });
             });
@@ -974,7 +974,6 @@ function openPdf(btn) {
 }
 
 function closePdf() {
-  activePdfMap = null;
   document.getElementById('pdfContainer').classList.remove('visible');
   document.getElementById('pdfMobielContainer').classList.remove('visible');
   document.getElementById('pdfPaginas').innerHTML = '';
@@ -982,8 +981,9 @@ function closePdf() {
   var frame = document.getElementById('pdfFrame');
   frame.classList.remove('geladen');
   frame.src = '';
-  window.scrollTo(0, 0);
-  updateScroll();
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  activePdfMap = null;
+  setTimeout(updateScroll, 50);
 }
 
 function initRing() {
