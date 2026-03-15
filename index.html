@@ -20,7 +20,7 @@
       --muted:   #6b6560;
     }
     * { margin:0; padding:0; box-sizing:border-box; }
-    html, body { }
+    html, body { height:100%; }
     body {
       background: var(--bg);
       color: var(--text);
@@ -371,19 +371,12 @@
   </style>
   <style>
     /* ── Slide systeem ─────────────────────────────────────────── */
-    html, body { overflow: hidden; height: 100dvh; }
-    body.pdf-open, body.portaal-scroll { overflow-y: auto; height: auto; }
+    html, body { overflow-x: hidden; }
 
     .slide-viewport {
       width: 100vw;
-      height: 100dvh;
       overflow: hidden;
       position: relative;
-    }
-    .slide-viewport.pdf-open, .slide-viewport.portaal-scroll {
-      height: auto;
-      min-height: 100dvh;
-      overflow: visible;
     }
 
     .slide-wrapper {
@@ -404,24 +397,12 @@
 
     .slide {
       width: 100vw;
-      height: 100dvh;
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
       flex-shrink: 0;
-      overflow: hidden;
-    }
-    #slideRooster.pdf-open {
-      height: auto;
-      min-height: 100dvh;
-      overflow-y: auto;
-    }
-    @media (max-width: 767px) {
-      #slidePortaal {
-        height: auto;
-        min-height: 100dvh;
-        overflow: visible;
-      }
+      overflow-x: hidden;
     }
 
     /* ── Tab knoppen ───────────────────────────────────────────── */
@@ -959,9 +940,7 @@ function zetViewer(blobUrl) {
 function openPdf(btn) {
   document.querySelectorAll('.date-btn').forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
-  document.getElementById('slideRooster').classList.add('pdf-open');
-  document.querySelector('.slide-viewport').classList.add('pdf-open');
-  document.body.classList.add('pdf-open');
+
 
   var map   = btn.getAttribute('data-map');
   var label = btn.getAttribute('data-label');
@@ -983,6 +962,8 @@ function openPdf(btn) {
     startGlow('glowCanvas', null);
   }
 
+  updateScroll();
+
   if (pdfCache[map] && pdfCache[map].blobUrl) {
     if (isMobiel) zetViewer(pdfCache[map].blobUrl);
     else          zetPcViewer(map);
@@ -994,13 +975,12 @@ function openPdf(btn) {
 
 function closePdf() {
   activePdfMap = null;
+  updateScroll();
   document.getElementById('pdfContainer').classList.remove('visible');
   document.getElementById('pdfMobielContainer').classList.remove('visible');
   document.getElementById('pdfPaginas').innerHTML = '';
   document.querySelectorAll('.date-btn').forEach(function(b) { b.classList.remove('active'); });
-  document.getElementById('slideRooster').classList.remove('pdf-open');
-  document.querySelector('.slide-viewport').classList.remove('pdf-open');
-  document.body.classList.remove('pdf-open');
+
   var frame = document.getElementById('pdfFrame');
   frame.classList.remove('geladen');
   frame.src = '';
@@ -1169,6 +1149,23 @@ planHerlaad();
 // ── Slide navigatie ───────────────────────────────────────────────
 var huidigSlide = null;
 
+
+  // Scroll beheer
+  function updateScroll() {
+    var mobiel = window.innerWidth < 768;
+    if (!mobiel) {
+      document.body.style.overflowY = 'hidden';
+      return;
+    }
+    var opPortaal = huidigSlide === 'portaal';
+    var pdfOpen = !!activePdfMap;
+    if (opPortaal || pdfOpen) {
+      document.body.style.overflowY = '';
+    } else {
+      document.body.style.overflowY = 'hidden';
+    }
+  }
+
 function gaNaar(doel) {
   var wrapper    = document.getElementById('slideWrapper');
   var tabRooster = document.getElementById('tabNaarRooster');
@@ -1185,14 +1182,7 @@ function gaNaar(doel) {
     tabRooster.style.display = 'block';
   }
   huidigSlide = doel;
-
-  if (doel === 'portaal' && window.innerWidth < 768) {
-    document.body.classList.add('portaal-scroll');
-    document.querySelector('.slide-viewport').classList.add('portaal-scroll');
-  } else {
-    document.body.classList.remove('portaal-scroll');
-    document.querySelector('.slide-viewport').classList.remove('portaal-scroll');
-  }
+  updateScroll();
 }
 
 var isSmallScreen = window.innerWidth < 768;
