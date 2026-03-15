@@ -936,11 +936,9 @@ function zetViewer(blobUrl) {
                   // Na eerste pagina: scroll zodat container in het midden staat
                   if (!eersteGescrolld && container) {
                     eersteGescrolld = true;
-                    requestAnimationFrame(function() {
-                      requestAnimationFrame(function() {
-                        container.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                      });
-                    });
+                    setTimeout(function() {
+                      container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 200);
                   }
                 });
             });
