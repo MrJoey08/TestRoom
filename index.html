@@ -942,11 +942,16 @@ function zetViewer(blobUrl) {
         if (container) {
           setTimeout(function() {
             var sr = document.getElementById('slideRooster');
-            var viewH = sr.clientHeight || window.innerHeight;
-            var containerOffsetTop = container.offsetTop;
+            var el = container;
+            var offsetTop = 0;
+            while (el && el !== sr) {
+              offsetTop += el.offsetTop;
+              el = el.offsetParent;
+            }
+            var viewH = window.innerHeight;
             var containerH = container.offsetHeight;
-            var scrollTo = containerOffsetTop - (viewH / 2) + (containerH / 2);
-            sr.scrollTo({ top: scrollTo, behavior: 'smooth' });
+            var targetY = offsetTop - (viewH / 2) + (containerH / 2);
+            sr.scrollTo({ top: targetY, behavior: 'smooth' });
           }, 400);
         }
       });
@@ -960,7 +965,7 @@ function openPdf(btn) {
 
   var sr = document.getElementById('slideRooster');
   sr.style.overflow = 'auto';
-  sr.style.height = 'auto';
+  sr.style.height = '100dvh';
 
 
   var map   = btn.getAttribute('data-map');
