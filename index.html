@@ -80,8 +80,8 @@
       height: clamp(3rem, 9vw, 4.8rem);
       width: auto;
       top: 50%;
-      left: -0.85em;
-      transform: translateY(-50%);
+      left: 0;
+      transform: translate(-38%, -50%);
       pointer-events: none;
     }
     .dates {
@@ -243,6 +243,107 @@
       color: var(--muted);
       text-align: center;
     }
+    .feedback-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.7rem;
+      cursor: pointer;
+      margin-left: 10px;
+      padding: 4px 10px;
+      transition: color 0.18s, border-color 0.18s;
+      vertical-align: middle;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .feedback-btn:hover { color: var(--accent); border-color: var(--accent); }
+    .feedback-btn svg { flex-shrink: 0; }
+    .feedback-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+    }
+    .feedback-overlay.open { display: flex; }
+    .feedback-modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 24px;
+      width: calc(100% - 48px);
+      max-width: 360px;
+    }
+    .feedback-modal h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+    .feedback-dev-msg {
+      font-size: 0.8rem;
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      line-height: 1.5;
+      display: none;
+    }
+    .feedback-dev-msg.visible { display: block; }
+    .feedback-modal textarea {
+      width: 100%;
+      min-height: 100px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      padding: 12px;
+      resize: vertical;
+      outline: none;
+    }
+    .feedback-modal textarea:focus { border-color: var(--accent); }
+    .feedback-modal-btns {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+      justify-content: flex-end;
+    }
+    .feedback-modal-btns button {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      padding: 8px 18px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .fb-cancel {
+      background: none;
+      color: var(--muted);
+    }
+    .fb-cancel:hover { color: var(--text); }
+    .fb-send {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .fb-send:hover { background: var(--accent2); border-color: var(--accent2); }
+    .fb-send:disabled { opacity: 0.4; cursor: not-allowed; }
+    .feedback-msg {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 10px;
+      text-align: center;
+    }
 
     /* Infobord ring wrapper */
     .infobord-wrapper {
@@ -270,7 +371,10 @@
   </style>
   <style>
     /* ── Slide systeem ─────────────────────────────────────────── */
-    html, body { overflow-x: hidden; }
+    html, body { overflow: hidden; height: 100dvh; }
+    body.scroll-unlocked { overflow: auto; height: auto; }
+    body.scroll-unlocked .slide-viewport { overflow: visible; }
+    body.scroll-unlocked .slide-wrapper { height: auto; }
 
     .slide-viewport {
       width: 100vw;
@@ -302,6 +406,26 @@
       align-items: center;
       flex-shrink: 0;
       overflow-x: hidden;
+    }
+    #slideRooster {
+      height: 100dvh;
+      min-height: 0;
+      overflow: hidden;
+    }
+    #slideRooster.pdf-open {
+      height: auto;
+      min-height: 100dvh;
+      overflow: visible;
+    }
+    #slidePortaal {
+      overflow: hidden;
+    }
+    @media (max-width: 767px) {
+      #slidePortaal {
+        height: auto;
+        min-height: 100dvh;
+        overflow-y: auto;
+      }
     }
 
     /* ── Tab knoppen ───────────────────────────────────────────── */
@@ -497,7 +621,7 @@
     </div>
   </div>
 
-  <footer>empowered by Joey Haks</footer>
+  <footer>Empowered by Joey Haks <button class="feedback-btn" onclick="openFeedback()" title="Feedback versturen"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Feedback</button></footer>
   </div>
   </div><!-- /slideRooster -->
 
@@ -507,7 +631,7 @@
 
   <div class="portaal-header">
     <div class="logo-title-wrap"><img class="logo-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMTAgMzQwIj4KPHBhdGggZD0iTTE0MC4wNSwzMDkuNzdBMjA5LjcsMjA5LjcsMCwwLDEsNjIuMzIsMjY1Yy0zMC0yNy4xNS00OC42OC01OS4zOS01NC44NS05MC0xLjg2LDM3Ljc0LDE4LDgxLjYzLDU3LDExNi45Myw1Ni4xNCw1MC43NSwxMzIuNzksNjYuMzcsMTgwLjg3LDM5LjU3QzIxMywzMzYuNTIsMTc1LjEyLDMyOC44NSwxNDAuMDUsMzA5Ljc3WiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTUuMiAtNS4wOSkiIHN0eWxlPSJmaWxsOiNlODYzNGEiLz48cGF0aCBkPSJNODMuNTIsOTUuNDRDMTExLjQ2LDc5Ljg3LDE0OSw3OC42MiwxODYuNjUsOTAuMjcsMTMxLjIsNjAuMSw2OC41OCw1OC40MSwzMi4zLDkwLjI5LDguNjIsMTExLjEuODUsMTQyLjEyLDcuNDcsMTc1YzEuMTItMjIuNDksOS45NC00Mi44LDI3LTU3LjhDNDcuODIsMTA1LjUsNjQuNzMsOTguMzUsODMuNTIsOTUuNDRaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNS4yIC01LjA5KSIgc3R5bGU9ImZpbGw6I2U4NjM0YSIvPjxwYXRoIGQ9Ik0xNDAuMDUsMzA5Ljc3YTIxNS4wNiwyMTUuMDYsMCwwLDEtNDEuMjYtMjkuMjVDNzcuMzcsMjYxLjE1LDYxLjczLDIzOS4yLDUyLjI4LDIxNy4xYy0xOC00Mi4xOS0xMy41MS04NC45NSwxNi40OS0xMTEuMzFBODQuNjUsODQuNjUsMCwwLDEsODMuNTIsOTUuNDRjLTE4Ljc5LDIuOTEtMzUuNywxMC4wNi00OSwyMS43OC0xNy4wNywxNS0yNS44OSwzNS4zMS0yNyw1Ny44LDYuMTcsMzAuNjEsMjQuODEsNjIuODUsNTQuODUsOTBBMjA5LjcsMjA5LjcsMCwwLDAsMTQwLjA1LDMwOS43N1oiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC01LjIgLTUuMDkpIiBzdHlsZT0iZmlsbDojYjg1NTNlIi8+PHBhdGggZD0iTTU4LjgyLDIwMS41NmExNzguMTQsMTc4LjE0LDAsMCwxLDguMTItNDkuMDdjMTUuNTktNDkuNzUsNTAuNDItODYuNCw5MC41NS0xMDEuMjZDMTg4LDMxLDIyNC4zNywyNC4yOCwyNTguNjgsMzZhMTA4LjczLDEwOC43MywwLDAsMSwxOC42NSw4LjQ0LDExMi40LDExMi40LDAsMCwwLTQ4Ljk1LTMzLjU5Yy02Ni4yNS0yMi42Mi0xNDAuMTEsMjMuNC0xNjUsMTAyLjgxQTE3My40OSwxNzMuNDksMCwwLDAsNTguODIsMjAxLjU2WiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTUuMiAtNS4wOSkiIHN0eWxlPSJmaWxsOiNjNDRkNjMiLz48cGF0aCBkPSJNMTU3LjQ5LDUxLjIzYzIzLjkxLTguODYsNDkuNzEtMTAsNzQuNDQtMS41NCw0MS4yNSwxNC4wOSw2OS44LDUxLjQ2LDc5LjQ4LDk2LjgzLjkzLTM5LjE3LTExLjUxLTc1Ljg1LTM0LjA4LTEwMi4wOEExMDguNzMsMTA4LjczLDAsMCwwLDI1OC42OCwzNkMyMjQuMzcsMjQuMjgsMTg4LDMxLDE1Ny40OSw1MS4yM1oiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC01LjIgLTUuMDkpIiBzdHlsZT0iZmlsbDojYjg1NTNlIi8+PHBhdGggZD0iTTE0Ni40NCwzMTNBMTE2LjM3LDExNi4zNywwLDAsMSwxMTkuNjQsMjkwYy0zMS44Ni0zNy00My41Ny05NC45MS0yNS45NS0xNTEuMTYsMTItMzguMjcsMzUuMzgtNjguNzYsNjMuOC04Ny41Ny00MC4xMywxNC44Ni03NSw1MS41MS05MC41NSwxMDEuMjZhMTc4LjE0LDE3OC4xNCwwLDAsMC04LjEyLDQ5LjA3Yy0xLjQ2LDYxLjk0LDMxLjk0LDExNyw4NC41LDEzNC45MkMxNDMuMzIsMzM2LjQ4LDE1My4zNCwzMTcuMzIsMTQ2LjQ0LDMxM1oiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC01LjIgLTUuMDkpIiBzdHlsZT0iZmlsbDojZjA5MjZhIi8+PHBhdGggZD0iTTE0MC4wNSwzMDkuNzdBMjA5LjcsMjA5LjcsMCwwLDEsNjIuMzIsMjY1Yy0zMC0yNy4xNS00OC42OC01OS4zOS01NC44NS05MC0xLjg2LDM3Ljc0LDE4LDgxLjYzLDU3LDExNi45Myw1Ni4xNCw1MC43NSwxMzIuNzksNjYuMzcsMTgwLjg3LDM5LjU3QzIxMywzMzYuNTIsMTc1LjEyLDMyOC44NSwxNDAuMDUsMzA5Ljc3WiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTUuMiAtNS4wOSkiIHN0eWxlPSJmaWxsOiNkNDVhNzIiLz48cGF0aCBkPSJNNy40NywxNzVjNi4xNywzMC42MSwyNC44MSw2Mi44NSw1NC44NSw5MGEyMDkuNywyMDkuNywwLDAsMCw3Ny43Myw0NC43NSwyMTUuMDYsMjE1LjA2LDAsMCwxLTQxLjI2LTI5LjI1Qzc3LjM3LDI2MS4xNSw2MS43MywyMzkuMiw1Mi4yOCwyMTcuMSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTUuMiAtNS4wOSkiIHN0eWxlPSJmaWxsOiNiODU1M2UiLz4KPC9zdmc+" alt=""><div class="logo-title">Portaal</div></div>
-    <div class="logo-sub">Altena College</div>
+    <div class="logo-sub ticker" id="tickerPortaal"></div>
   </div>
 
   <div class="portaal-grid">
@@ -552,12 +676,26 @@
 
   </div>
 
-  <footer>empowered by Joey Haks</footer>
+  <footer>Empowered by Joey Haks <button class="feedback-btn" onclick="openFeedback()" title="Feedback versturen"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Feedback</button></footer>
   </div>
   </div><!-- /slidePortaal -->
 
 </div><!-- /slideWrapper -->
 </div><!-- /slideViewport -->
+
+<!-- Feedback modal -->
+<div class="feedback-overlay" id="feedbackOverlay" onclick="if(event.target===this)closeFeedback()">
+  <div class="feedback-modal">
+    <h3>Feedback</h3>
+    <div class="feedback-dev-msg visible" id="feedbackDevMsg">Hey! Heb je een suggestie of loopt er iets niet lekker? Laat het me weten 👇</div>
+    <textarea id="feedbackTekst" placeholder="Typ je bericht..."></textarea>
+    <div class="feedback-msg" id="feedbackMsg"></div>
+    <div class="feedback-modal-btns">
+      <button class="fb-cancel" onclick="closeFeedback()">Annuleren</button>
+      <button class="fb-send" id="feedbackSend" onclick="verstuurFeedback()">Versturen</button>
+    </div>
+  </div>
+</div>
 
 <script>
 var isMobiel = window.innerWidth < 768;
@@ -825,6 +963,8 @@ function zetViewer(blobUrl) {
 function openPdf(btn) {
   document.querySelectorAll('.date-btn').forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
+  document.getElementById('slideRooster').classList.add('pdf-open');
+  document.body.classList.add('scroll-unlocked');
 
   var map   = btn.getAttribute('data-map');
   var label = btn.getAttribute('data-label');
@@ -861,6 +1001,8 @@ function closePdf() {
   document.getElementById('pdfMobielContainer').classList.remove('visible');
   document.getElementById('pdfPaginas').innerHTML = '';
   document.querySelectorAll('.date-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById('slideRooster').classList.remove('pdf-open');
+  document.body.classList.remove('scroll-unlocked');
   var frame = document.getElementById('pdfFrame');
   frame.classList.remove('geladen');
   frame.src = '';
@@ -935,17 +1077,20 @@ var tickerBerichten = [
 ];
 
 function startTicker() {
-  var el = document.getElementById('ticker');
-  if (!el) return;
+  var els = [document.getElementById('ticker'), document.getElementById('tickerPortaal')];
+  els = els.filter(function(e) { return !!e; });
+  if (!els.length) return;
   var duur = 4000;
   var idx = 0;
 
   function toonBericht() {
-    var span = document.createElement('span');
-    span.textContent = tickerBerichten[idx];
-    span.style.animationDuration = duur + 'ms';
-    el.innerHTML = '';
-    el.appendChild(span);
+    els.forEach(function(el) {
+      var span = document.createElement('span');
+      span.textContent = tickerBerichten[idx];
+      span.style.animationDuration = duur + 'ms';
+      el.innerHTML = '';
+      el.appendChild(span);
+    });
     idx = (idx + 1) % tickerBerichten.length;
   }
 
@@ -965,6 +1110,61 @@ fetch('/ticker.json?' + Date.now())
   .catch(function() {
     startTicker();
   });
+
+// ── Feedback ──────────────────────────────────────────────────
+function openFeedback() {
+  var laatst = localStorage.getItem('feedbackLaatst');
+  var nu = Date.now();
+  if (laatst && (nu - parseInt(laatst)) < 24 * 60 * 60 * 1000) {
+    document.getElementById('feedbackOverlay').classList.add('open');
+    document.getElementById('feedbackTekst').disabled = true;
+    document.getElementById('feedbackSend').disabled = true;
+    document.getElementById('feedbackMsg').textContent = 'Je hebt al feedback gestuurd vandaag. Probeer het morgen opnieuw.';
+    return;
+  }
+  document.getElementById('feedbackOverlay').classList.add('open');
+  document.getElementById('feedbackTekst').disabled = false;
+  document.getElementById('feedbackSend').disabled = false;
+  document.getElementById('feedbackMsg').textContent = '';
+  document.getElementById('feedbackTekst').value = '';
+  document.getElementById('feedbackTekst').focus();
+}
+
+function closeFeedback() {
+  document.getElementById('feedbackOverlay').classList.remove('open');
+}
+
+function verstuurFeedback() {
+  var tekst = document.getElementById('feedbackTekst').value.trim();
+  if (!tekst) return;
+  var btn = document.getElementById('feedbackSend');
+  var msg = document.getElementById('feedbackMsg');
+  btn.disabled = true;
+  btn.textContent = 'Versturen...';
+
+  fetch('/api/feedback', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ bericht: tekst })
+  })
+  .then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  })
+  .then(function() {
+    localStorage.setItem('feedbackLaatst', '' + Date.now());
+    msg.style.color = 'var(--accent)';
+    msg.textContent = 'Bedankt voor je feedback!';
+    btn.textContent = 'Verstuurd ✓';
+    setTimeout(closeFeedback, 1800);
+  })
+  .catch(function() {
+    msg.style.color = '#e85a5a';
+    msg.textContent = 'Versturen mislukt. Probeer het later opnieuw.';
+    btn.disabled = false;
+    btn.textContent = 'Versturen';
+  });
+}
 bouwKnoppen();
 planHerlaad();
 
@@ -987,11 +1187,22 @@ function gaNaar(doel) {
     tabRooster.style.display = 'block';
   }
   huidigSlide = doel;
+
+  // Scroll management
+  if (doel === 'portaal' && window.innerWidth < 768) {
+    document.body.classList.add('scroll-unlocked');
+  } else if (doel === 'rooster') {
+    // Alleen unlocked als er een PDF open is
+    if (!document.getElementById('slideRooster').classList.contains('pdf-open')) {
+      document.body.classList.remove('scroll-unlocked');
+    }
+  }
 }
 
 var isSmallScreen = window.innerWidth < 768;
 gaNaar(isSmallScreen ? 'rooster' : 'portaal');
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
