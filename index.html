@@ -20,7 +20,7 @@
       --muted:   #6b6560;
     }
     * { margin:0; padding:0; box-sizing:border-box; }
-    html, body { height:100%; }
+    html, body { }
     body {
       background: var(--bg);
       color: var(--text);
@@ -372,12 +372,10 @@
   <style>
     /* ── Slide systeem ─────────────────────────────────────────── */
     html, body { overflow: hidden; height: 100dvh; }
-    body.scroll-unlocked { overflow: auto; height: auto; }
-    body.scroll-unlocked .slide-viewport { overflow: visible; }
-    body.scroll-unlocked .slide-wrapper { height: auto; }
 
     .slide-viewport {
       width: 100vw;
+      height: 100dvh;
       overflow: hidden;
       position: relative;
     }
@@ -400,30 +398,18 @@
 
     .slide {
       width: 100vw;
-      min-height: 100dvh;
+      height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
       flex-shrink: 0;
-      overflow-x: hidden;
-    }
-    #slideRooster {
-      height: 100dvh;
-      min-height: 0;
       overflow: hidden;
     }
     #slideRooster.pdf-open {
-      height: auto;
-      min-height: 100dvh;
-      overflow: visible;
-    }
-    #slidePortaal {
-      overflow: hidden;
+      overflow-y: auto;
     }
     @media (max-width: 767px) {
       #slidePortaal {
-        height: auto;
-        min-height: 100dvh;
         overflow-y: auto;
       }
     }
@@ -964,7 +950,6 @@ function openPdf(btn) {
   document.querySelectorAll('.date-btn').forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
   document.getElementById('slideRooster').classList.add('pdf-open');
-  document.body.classList.add('scroll-unlocked');
 
   var map   = btn.getAttribute('data-map');
   var label = btn.getAttribute('data-label');
@@ -1002,7 +987,6 @@ function closePdf() {
   document.getElementById('pdfPaginas').innerHTML = '';
   document.querySelectorAll('.date-btn').forEach(function(b) { b.classList.remove('active'); });
   document.getElementById('slideRooster').classList.remove('pdf-open');
-  document.body.classList.remove('scroll-unlocked');
   var frame = document.getElementById('pdfFrame');
   frame.classList.remove('geladen');
   frame.src = '';
@@ -1187,16 +1171,6 @@ function gaNaar(doel) {
     tabRooster.style.display = 'block';
   }
   huidigSlide = doel;
-
-  // Scroll management
-  if (doel === 'portaal' && window.innerWidth < 768) {
-    document.body.classList.add('scroll-unlocked');
-  } else if (doel === 'rooster') {
-    // Alleen unlocked als er een PDF open is
-    if (!document.getElementById('slideRooster').classList.contains('pdf-open')) {
-      document.body.classList.remove('scroll-unlocked');
-    }
-  }
 }
 
 var isSmallScreen = window.innerWidth < 768;
