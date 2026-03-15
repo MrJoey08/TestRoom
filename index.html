@@ -937,7 +937,7 @@ function zetViewer(blobUrl) {
           });
         })(i);
       }
-      // Na alle pagina's geladen: scroll naar het midden van de container
+      // Scroll naar container pas nadat ALLE pagina's geladen zijn
       return chain.then(function() {
         if (container) {
           setTimeout(function() {
