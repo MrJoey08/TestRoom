@@ -933,19 +933,14 @@ function zetViewer(blobUrl) {
               return page.render({ canvasContext: c.getContext('2d'), viewport: vp })
                 .promise.then(function() {
                   paginas.appendChild(c);
-                  // Na eerste pagina: scroll zodat container in het midden staat
-                  if (!eersteGescrolld && container) {
-                    eersteGescrolld = true;
-                    setTimeout(function() {
-                      container.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 150);
-                  }
                 });
             });
           });
         })(i);
       }
-      return chain;
+      return chain.then(function() {
+        window._pdfKlaar = true;
+      });
     })
     .catch(function(e) { zetStatus('Fout: ' + e.message); });
 }
@@ -953,11 +948,6 @@ function zetViewer(blobUrl) {
 function openPdf(btn) {
   document.querySelectorAll('.date-btn').forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
-
-  var sr = document.getElementById('slideRooster');
-  sr.style.overflow = 'auto';
-  sr.style.height = 'auto';
-
 
   var map   = btn.getAttribute('data-map');
   var label = btn.getAttribute('data-label');
@@ -974,9 +964,13 @@ function openPdf(btn) {
     zetStatus('Laden…');
     document.getElementById('pdfStatus').style.display = '';
     startGlow('glowCanvasMobiel', null);
-    setTimeout(function() {
-      document.getElementById('pdfMobielContainer').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 2000);
+    window._pdfKlaar = false;
+    var wacht = setInterval(function() {
+      if (window._pdfKlaar) {
+        clearInterval(wacht);
+        document.getElementById('pdfMobielContainer').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
   } else {
     document.getElementById('pdfLabel').textContent = label;
     document.getElementById('pdfContainer').classList.add('visible');
@@ -1006,6 +1000,7 @@ function closePdf() {
   var sr = document.getElementById('slideRooster');
   sr.scrollTo(0, 0);
   document.querySelector('.slide-viewport').scrollTo(0, 0);
+  document.querySelector('.slide-viewport').style.overflow = '';
   sr.style.overflow = '';
   sr.style.height = '';
   activePdfMap = null;
