@@ -84,23 +84,6 @@
       height: auto;
       overflow: visible;
     }
-    @media (max-width: 767px) {
-      #roosterContent:has(.pdf-mobiel-container.visible) {
-        height: 100dvh;
-        overflow-y: auto;
-      }
-      #roosterContent:has(.pdf-mobiel-container.visible) > header,
-      #roosterContent:has(.pdf-mobiel-container.visible) > .dates {
-        display: none;
-      }
-      #roosterContent:has(.pdf-mobiel-container.visible) > .pdf-mobiel-container {
-        margin: 0;
-        width: 100%;
-        border-radius: 0;
-        border: none;
-        flex: 1;
-      }
-    }
     .logo-icon {
       position: absolute;
       height: clamp(3rem, 9vw, 4.8rem);
@@ -615,19 +598,6 @@
     </div>
   </div>
 
-  <!-- Mobiel: PDF.js inline viewer -->
-  <div class="pdf-mobiel-container" id="pdfMobielContainer">
-    <div class="pdf-header">
-      <span class="pdf-label" id="pdfMobielLabel"></span>
-      <button class="pdf-close" onclick="closePdf()">&#x2715;</button>
-    </div>
-    <div class="pdf-mobiel-body" id="pdfViewerBody">
-      <canvas id="glowCanvasMobiel"></canvas>
-      <div class="pdf-mobiel-laadbericht" id="pdfStatus">Laden…</div>
-      <div class="pdf-mobiel-paginas" id="pdfPaginas"></div>
-    </div>
-  </div>
-
   <footer>Empowered by Joey Haks <button class="feedback-btn" onclick="openFeedback()" title="Feedback versturen"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Feedback</button></footer>
   </div>
   </div><!-- /slideRooster -->
@@ -689,6 +659,19 @@
 
 </div><!-- /slideWrapper -->
 </div><!-- /slideViewport -->
+
+<!-- Mobiel: PDF.js inline viewer (buiten slide systeem zodat scroll werkt) -->
+<div class="pdf-mobiel-container" id="pdfMobielContainer">
+  <div class="pdf-header">
+    <span class="pdf-label" id="pdfMobielLabel"></span>
+    <button class="pdf-close" onclick="closePdf()">&#x2715;</button>
+  </div>
+  <div class="pdf-mobiel-body" id="pdfViewerBody">
+    <canvas id="glowCanvasMobiel"></canvas>
+    <div class="pdf-mobiel-laadbericht" id="pdfStatus">Laden…</div>
+    <div class="pdf-mobiel-paginas" id="pdfPaginas"></div>
+  </div>
+</div>
 
 <!-- Feedback modal -->
 <div class="feedback-overlay" id="feedbackOverlay" onclick="if(event.target===this)closeFeedback()">
