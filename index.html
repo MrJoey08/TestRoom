@@ -933,6 +933,13 @@ function zetViewer(blobUrl) {
               return page.render({ canvasContext: c.getContext('2d'), viewport: vp })
                 .promise.then(function() {
                   paginas.appendChild(c);
+                  // Na eerste pagina: scroll zodat container in het midden staat
+                  if (!eersteGescrolld && container) {
+                    eersteGescrolld = true;
+                    setTimeout(function() {
+                      container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 150);
+                  }
                 });
             });
           });
@@ -967,13 +974,9 @@ function openPdf(btn) {
     zetStatus('Laden…');
     document.getElementById('pdfStatus').style.display = '';
     startGlow('glowCanvasMobiel', null);
-    var scrollCheck = setInterval(function() {
-      var paginas = document.getElementById('pdfPaginas');
-      if (paginas && paginas.children.length > 0) {
-        clearInterval(scrollCheck);
-        document.getElementById('pdfMobielContainer').scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }, 200);
+    setTimeout(function() {
+      document.getElementById('pdfMobielContainer').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 2000);
   } else {
     document.getElementById('pdfLabel').textContent = label;
     document.getElementById('pdfContainer').classList.add('visible');
