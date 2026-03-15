@@ -81,7 +81,8 @@
     }
     #roosterContent:has(.pdf-container.visible),
     #roosterContent:has(.pdf-mobiel-container.visible) {
-      overflow-y: auto;
+      height: auto;
+      overflow: visible;
     }
     .logo-icon {
       position: absolute;
@@ -963,6 +964,8 @@ function openPdf(btn) {
   activePdfMap = map;
 
   if (isMobiel) {
+    document.getElementById('slideRooster').style.height = 'auto';
+    document.getElementById('slideRooster').style.overflow = 'visible';
     document.getElementById('pdfMobielLabel').textContent = label;
     document.getElementById('pdfMobielContainer').classList.add('visible');
     document.getElementById('pdfContainer').classList.remove('visible');
