@@ -937,7 +937,7 @@ function zetViewer(blobUrl) {
                   if (!eersteGescrolld && container) {
                     eersteGescrolld = true;
                     setTimeout(function() {
-                      window.scrollTo({ top: container.offsetTop - 20, behavior: 'smooth' });
+                      container.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }, 300);
                   }
                 });
@@ -999,6 +999,7 @@ function closePdf() {
   frame.src = '';
   var sr = document.getElementById('slideRooster');
   sr.scrollTo(0, 0);
+  document.querySelector('.slide-viewport').scrollTo(0, 0);
   sr.style.overflow = '';
   sr.style.height = '';
   activePdfMap = null;
