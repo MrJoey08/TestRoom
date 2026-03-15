@@ -937,8 +937,8 @@ function zetViewer(blobUrl) {
                   if (!eersteGescrolld && container) {
                     eersteGescrolld = true;
                     setTimeout(function() {
-                      container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }, 300);
+                      container.scrollIntoView({ behavior: 'instant', block: 'center' });
+                    }, 100);
                   }
                 });
             });
