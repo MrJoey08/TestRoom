@@ -942,16 +942,11 @@ function zetViewer(blobUrl) {
         if (container) {
           setTimeout(function() {
             var sr = document.getElementById('slideRooster');
-            var scrollParent = sr && sr.style.overflow === 'auto' ? sr : window;
-            var containerTop = container.getBoundingClientRect().top;
-            var viewH = window.innerHeight;
+            var viewH = sr.clientHeight || window.innerHeight;
+            var containerOffsetTop = container.offsetTop;
             var containerH = container.offsetHeight;
-            var offset = containerTop - (viewH / 2) + (containerH / 2);
-            if (scrollParent === window) {
-              window.scrollBy({ top: offset, behavior: 'smooth' });
-            } else {
-              scrollParent.scrollBy({ top: offset, behavior: 'smooth' });
-            }
+            var scrollTo = containerOffsetTop - (viewH / 2) + (containerH / 2);
+            sr.scrollTo({ top: scrollTo, behavior: 'smooth' });
           }, 400);
         }
       });
