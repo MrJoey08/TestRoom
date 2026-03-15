@@ -937,22 +937,12 @@ function zetViewer(blobUrl) {
           });
         })(i);
       }
-      // Na alle pagina's: wacht tot layout stabiel is, scroll container in beeld
+      // Na ALLE pagina's geladen: scroll naar het midden van de container
       return chain.then(function() {
         if (container) {
           setTimeout(function() {
-            var sr = document.getElementById('slideRooster');
-            var el = container;
-            var offsetTop = 0;
-            while (el && el !== sr) {
-              offsetTop += el.offsetTop;
-              el = el.offsetParent;
-            }
-            var viewH = window.innerHeight;
-            var containerH = container.offsetHeight;
-            var targetY = offsetTop - (viewH / 2) + (containerH / 2);
-            sr.scrollTo({ top: targetY, behavior: 'smooth' });
-          }, 400);
+            container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 100);
         }
       });
     })
@@ -965,7 +955,7 @@ function openPdf(btn) {
 
   var sr = document.getElementById('slideRooster');
   sr.style.overflow = 'auto';
-  sr.style.height = '100dvh';
+  sr.style.height = 'auto';
 
 
   var map   = btn.getAttribute('data-map');
