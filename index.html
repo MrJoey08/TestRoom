@@ -372,12 +372,18 @@
   <style>
     /* ── Slide systeem ─────────────────────────────────────────── */
     html, body { overflow: hidden; height: 100dvh; }
+    body.pdf-open, body.portaal-scroll { overflow-y: auto; height: auto; }
 
     .slide-viewport {
       width: 100vw;
       height: 100dvh;
       overflow: hidden;
       position: relative;
+    }
+    .slide-viewport.pdf-open, .slide-viewport.portaal-scroll {
+      height: auto;
+      min-height: 100dvh;
+      overflow: visible;
     }
 
     .slide-wrapper {
@@ -406,11 +412,15 @@
       overflow: hidden;
     }
     #slideRooster.pdf-open {
+      height: auto;
+      min-height: 100dvh;
       overflow-y: auto;
     }
     @media (max-width: 767px) {
       #slidePortaal {
-        overflow-y: auto;
+        height: auto;
+        min-height: 100dvh;
+        overflow: visible;
       }
     }
 
@@ -950,6 +960,8 @@ function openPdf(btn) {
   document.querySelectorAll('.date-btn').forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
   document.getElementById('slideRooster').classList.add('pdf-open');
+  document.querySelector('.slide-viewport').classList.add('pdf-open');
+  document.body.classList.add('pdf-open');
 
   var map   = btn.getAttribute('data-map');
   var label = btn.getAttribute('data-label');
@@ -987,6 +999,8 @@ function closePdf() {
   document.getElementById('pdfPaginas').innerHTML = '';
   document.querySelectorAll('.date-btn').forEach(function(b) { b.classList.remove('active'); });
   document.getElementById('slideRooster').classList.remove('pdf-open');
+  document.querySelector('.slide-viewport').classList.remove('pdf-open');
+  document.body.classList.remove('pdf-open');
   var frame = document.getElementById('pdfFrame');
   frame.classList.remove('geladen');
   frame.src = '';
@@ -1171,6 +1185,14 @@ function gaNaar(doel) {
     tabRooster.style.display = 'block';
   }
   huidigSlide = doel;
+
+  if (doel === 'portaal' && window.innerWidth < 768) {
+    document.body.classList.add('portaal-scroll');
+    document.querySelector('.slide-viewport').classList.add('portaal-scroll');
+  } else {
+    document.body.classList.remove('portaal-scroll');
+    document.querySelector('.slide-viewport').classList.remove('portaal-scroll');
+  }
 }
 
 var isSmallScreen = window.innerWidth < 768;
