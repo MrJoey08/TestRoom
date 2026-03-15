@@ -954,7 +954,11 @@ function openPdf(btn) {
   document.querySelectorAll('.date-btn').forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
 
-  document.getElementById('slideRooster').style.overflow = 'auto';
+  if (isMobiel) {
+    var sr = document.getElementById('slideRooster');
+    sr.style.overflow = 'auto';
+    sr.style.height = 'auto';
+  }
 
 
   var map   = btn.getAttribute('data-map');
@@ -997,7 +1001,8 @@ function closePdf() {
   frame.src = '';
   var sr = document.getElementById('slideRooster');
   sr.scrollTo(0, 0);
-  sr.style.overflow = 'hidden';
+  sr.style.overflow = '';
+  sr.style.height = '';
   activePdfMap = null;
 }
 
