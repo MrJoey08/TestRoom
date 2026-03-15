@@ -970,6 +970,7 @@ function openPdf(btn) {
     document.getElementById('pdfPaginas').innerHTML = '';
     zetStatus('Laden…');
     document.getElementById('pdfStatus').style.display = '';
+    document.getElementById('pdfMobielContainer').scrollIntoView({ behavior: 'smooth', block: 'center' });
     startGlow('glowCanvasMobiel', null);
   } else {
     document.getElementById('pdfLabel').textContent = label;
