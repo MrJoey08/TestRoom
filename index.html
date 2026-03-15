@@ -941,7 +941,7 @@ function zetViewer(blobUrl) {
       return chain.then(function() {
         if (container) {
           setTimeout(function() {
-            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            container.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }, 400);
         }
       });
