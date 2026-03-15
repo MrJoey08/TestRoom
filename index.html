@@ -933,25 +933,13 @@ function zetViewer(blobUrl) {
               return page.render({ canvasContext: c.getContext('2d'), viewport: vp })
                 .promise.then(function() {
                   paginas.appendChild(c);
-                  // Na eerste pagina renderen: wacht tot layout klaar is, scroll dan naar container
+                  // Na eerste pagina geladen: scroll zodat container in beeld komt
                   if (!eersteGescrolld && container) {
                     eersteGescrolld = true;
-                    // Gebruik requestAnimationFrame zodat de browser de layout heeft berekend
+                    // requestAnimationFrame zorgt dat layout klaar is voor we scrollen
                     requestAnimationFrame(function() {
                       requestAnimationFrame(function() {
-                        var rect = container.getBoundingClientRect();
-                        var scrollEl = document.getElementById('slideRooster');
-                        if (scrollEl && scrollEl.scrollHeight > scrollEl.clientHeight) {
-                          // slideRooster is scrollbaar (overflow: auto gezet door openPdf)
-                          var containerTop = container.offsetTop;
-                          var centerOffset = containerTop - (scrollEl.clientHeight / 2) + (container.offsetHeight / 2);
-                          scrollEl.scrollTo({ top: Math.max(0, centerOffset), behavior: 'smooth' });
-                        } else {
-                          // Fallback: scroll window
-                          var absTop = window.pageYOffset + rect.top;
-                          var center = absTop - (window.innerHeight / 2) + (rect.height / 2);
-                          window.scrollTo({ top: Math.max(0, center), behavior: 'smooth' });
-                        }
+                        scrollNaarPdfMobiel();
                       });
                     });
                   }
@@ -963,6 +951,25 @@ function zetViewer(blobUrl) {
       return chain;
     })
     .catch(function(e) { zetStatus('Fout: ' + e.message); });
+}
+
+// ── Mobiel scroll naar PDF container ─────────────────────────────
+function scrollNaarPdfMobiel() {
+  var container = document.getElementById('pdfMobielContainer');
+  var sr = document.getElementById('slideRooster');
+  if (!container || !sr) return;
+
+  // Bereken positie van container relatief aan de scroll-container (slideRooster)
+  var containerTop = container.getBoundingClientRect().top;
+  var srTop = sr.getBoundingClientRect().top;
+  var relatief = containerTop - srTop;
+
+  // Midden van het scherm: scroll zodat container gecentreerd is
+  var schermHoogte = window.innerHeight || sr.clientHeight;
+  var containerHoogte = container.offsetHeight;
+  var doelScroll = sr.scrollTop + relatief - (schermHoogte / 2) + (containerHoogte / 2);
+
+  sr.scrollTo({ top: Math.max(0, doelScroll), behavior: 'smooth' });
 }
 
 function openPdf(btn) {
@@ -986,6 +993,10 @@ function openPdf(btn) {
     zetStatus('Laden…');
     document.getElementById('pdfStatus').style.display = '';
     startGlow('glowCanvasMobiel', null);
+    // Scroll naar de container zodra die zichtbaar is (voor het laden)
+    setTimeout(function() {
+      scrollNaarPdfMobiel();
+    }, 80);
   } else {
     document.getElementById('pdfLabel').textContent = label;
     document.getElementById('pdfContainer').classList.add('visible');
