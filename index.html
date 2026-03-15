@@ -937,12 +937,12 @@ function zetViewer(blobUrl) {
           });
         })(i);
       }
-      // Na alle pagina's geladen: scroll naar container midden
+      // Na alle pagina's geladen: scroll naar het midden van de container
       return chain.then(function() {
         if (container) {
           setTimeout(function() {
             container.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }, 150);
+          }, 100);
         }
       });
     })
