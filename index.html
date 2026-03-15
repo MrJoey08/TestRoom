@@ -84,11 +84,6 @@
       height: auto;
       overflow: visible;
     }
-    #slideRooster:has(.pdf-container.visible),
-    #slideRooster:has(.pdf-mobiel-container.visible) {
-      height: auto;
-      overflow: visible;
-    }
     .logo-icon {
       position: absolute;
       height: clamp(3rem, 9vw, 4.8rem);
@@ -923,7 +918,6 @@ function zetViewer(blobUrl) {
     .promise.then(function(pdf) {
       if (status) status.style.display = 'none';
       paginas.innerHTML = '';
-      var eersteGescrolld = false;
       var chain = Promise.resolve();
       for (var i = 1; i <= pdf.numPages; i++) {
         (function(n) {
@@ -938,19 +932,19 @@ function zetViewer(blobUrl) {
               return page.render({ canvasContext: c.getContext('2d'), viewport: vp })
                 .promise.then(function() {
                   paginas.appendChild(c);
-                  // Na eerste pagina: scroll zodat container in het midden staat
-                  if (!eersteGescrolld && container) {
-                    eersteGescrolld = true;
-                    setTimeout(function() {
-                      container.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 150);
-                  }
                 });
             });
           });
         })(i);
       }
-      return chain;
+      // Na alle pagina's: scroll naar het midden van de container
+      return chain.then(function() {
+        if (container) {
+          setTimeout(function() {
+            container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 100);
+        }
+      });
     })
     .catch(function(e) { zetStatus('Fout: ' + e.message); });
 }
@@ -976,6 +970,11 @@ function openPdf(btn) {
     zetStatus('Laden…');
     document.getElementById('pdfStatus').style.display = '';
     startGlow('glowCanvasMobiel', null);
+    // Direct naar het midden scrollen zodra container zichtbaar is
+    setTimeout(function() {
+      var c = document.getElementById('pdfMobielContainer');
+      if (c) c.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 80);
   } else {
     document.getElementById('pdfLabel').textContent = label;
     document.getElementById('pdfContainer').classList.add('visible');
