@@ -84,6 +84,23 @@
       height: auto;
       overflow: visible;
     }
+    @media (max-width: 767px) {
+      #roosterContent:has(.pdf-mobiel-container.visible) {
+        height: 100dvh;
+        overflow-y: auto;
+      }
+      #roosterContent:has(.pdf-mobiel-container.visible) > header,
+      #roosterContent:has(.pdf-mobiel-container.visible) > .dates {
+        display: none;
+      }
+      #roosterContent:has(.pdf-mobiel-container.visible) > .pdf-mobiel-container {
+        margin: 0;
+        width: 100%;
+        border-radius: 0;
+        border: none;
+        flex: 1;
+      }
+    }
     .logo-icon {
       position: absolute;
       height: clamp(3rem, 9vw, 4.8rem);
@@ -416,11 +433,6 @@
     }
     #slidePortaal {
       overflow-y: auto;
-    }
-    #slideRooster:has(.pdf-container.visible),
-    #slideRooster:has(.pdf-mobiel-container.visible) {
-      height: auto;
-      overflow: visible;
     }
 
     /* ── Tab knoppen ───────────────────────────────────────────── */
